@@ -80,15 +80,18 @@
         .warning-badge { font-size: 0.7rem; background: #f56565; color: white; padding: 2px 6px; border-radius: 4px; margin-left: 5px; text-transform: uppercase; }
         
         .big-result { font-size: 1.5rem; color: var(--success); text-align: center; display: block; margin-top: 10px; }
+        
+        table.std-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin-top: 10px; }
+        table.std-table th, table.std-table td { border: 1px solid var(--border); padding: 8px; text-align: left; }
+        table.std-table th { background-color: #f1f5f9; color: var(--text-main); }
     </style>
 </head>
 <body>
 
     <header>
         <div class="logo-container">
-            <!-- LOGO ADDED HERE -->
             <img src="BU_Logo.png" alt="Logo" class="logo-img">
-            <h1>ProBuilder Calc</h1>
+            <h3>ProBuilder Calc by Vytautas G.</h3>
         </div>
         <select id="lang-select" onchange="changeLanguage()">
             <option value="en">English</option>
@@ -108,7 +111,7 @@
     <div class="container">
         <!-- FRAME TAB -->
         <div id="karkasas" class="tab-content active">
-            
+            <!-- Content kept from previous version -->
             <div class="card">
                 <h3 data-i18n="stud_spacing_title">1. Stud Layout (c/c)</h3>
                 <div class="row">
@@ -196,6 +199,7 @@
 
         <!-- ROOF TAB -->
         <div id="stogas" class="tab-content">
+            <!-- Content kept from previous version -->
             <div class="card">
                 <h3 data-i18n="roof_batten_title">Roof Batten Spacing</h3>
                 
@@ -284,8 +288,187 @@
             </div>
         </div>
         
-        <div id="plotai" class="tab-content"><h2 data-i18n="menu_areas">Areas / Angles</h2><p data-i18n="placeholder_text">Coming soon...</p></div>
-        <div id="laiptai" class="tab-content"><h2 data-i18n="menu_stairs">Stairs</h2><p data-i18n="placeholder_text">Coming soon...</p></div>
+        <!-- AREAS / ANGLES TAB -->
+        <div id="plotai" class="tab-content">
+            <!-- 1. Right Angle (Pythagoras) & Angle Finder -->
+            <div class="card">
+                <h3 data-i18n="area_pythagoras_title">90° Angle Check (Pythagoras)</h3>
+                <div class="row">
+                    <div class="form-group">
+                        <label data-i18n="area_side_a">Side A (mm):</label>
+                        <input type="number" id="sideA" placeholder="3000">
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="area_side_b">Side B (mm):</label>
+                        <input type="number" id="sideB" placeholder="4000">
+                    </div>
+                </div>
+                <button class="calc-btn" onclick="calcPythagoras()" data-i18n="calc_diag_btn">Calculate Diagonal</button>
+                <div class="result-box" id="pythResult" style="display: none;"></div>
+                
+                <!-- NEW: True Angle Finder -->
+                <h4 style="margin: 15px 0 5px 0; border-top: 1px solid #eee; padding-top:10px;" data-i18n="true_angle_title">Find Real Angle (from Sides & Diag)</h4>
+                <div class="row">
+                    <div class="form-group">
+                        <label data-i18n="area_side_a">Side A (mm):</label>
+                        <input type="number" id="angSideA" placeholder="3000">
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="area_side_b">Side B (mm):</label>
+                        <input type="number" id="angSideB" placeholder="4000">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label data-i18n="measured_diag">Measured Diagonal (mm):</label>
+                    <input type="number" id="measuredDiag" placeholder="5000">
+                </div>
+                <button class="calc-btn" style="background-color: var(--accent);" onclick="calcTrueAngle()" data-i18n="calc_angle_btn">Calculate Angle</button>
+                <div class="result-box" id="angleResult" style="display: none;"></div>
+            </div>
+
+            <!-- 2. Area Calculator -->
+            <div class="card">
+                <h3 data-i18n="area_calc_title">Surface Area Calculator</h3>
+                <div class="form-group">
+                    <label data-i18n="area_shape">Shape:</label>
+                    <select id="areaShape" onchange="toggleShapeInputs()">
+                        <option value="rect" data-i18n="shape_rect">Rectangle (Floor/Wall)</option>
+                        <option value="triangle" data-i18n="shape_tri">Triangle (Gable)</option>
+                        <option value="roof" data-i18n="shape_roof">Roof Slope Area</option>
+                    </select>
+                </div>
+                
+                <div class="row">
+                    <div class="form-group">
+                        <label id="lblW" data-i18n="area_width_base">Width / Base (m):</label>
+                        <input type="number" id="areaW" placeholder="4.0">
+                    </div>
+                    <div class="form-group">
+                        <label id="lblL" data-i18n="area_len_height">Length / Height (m):</label>
+                        <input type="number" id="areaL" placeholder="5.0">
+                    </div>
+                </div>
+                <div class="form-group" id="roofPitchGroup" style="display:none;">
+                    <label data-i18n="roof_pitch_deg">Roof Pitch (°):</label>
+                    <input type="number" id="areaPitch" placeholder="30">
+                </div>
+                
+                <button class="calc-btn" onclick="calcArea()" data-i18n="calc_area_btn">Calculate Area</button>
+                <div class="result-box" id="areaResult" style="display: none;"></div>
+            </div>
+
+            <!-- 3. Material Estimator -->
+            <div class="card">
+                <h3 data-i18n="mat_calc_title">Material Estimator</h3>
+                <div class="form-group">
+                    <label data-i18n="mat_type">Material Type:</label>
+                    <select id="matType" onchange="updateMatDefaults()">
+                        <option value="decking" data-i18n="mat_decking">Decking / Flooring</option>
+                        <option value="tiles" data-i18n="mat_tiles">Tiles (Floor/Wall/Roof)</option>
+                        <option value="drywall" data-i18n="mat_drywall">Drywall / Panels</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label data-i18n="mat_total_area">Total Area (m²):</label>
+                    <input type="number" id="matArea" placeholder="20.0">
+                </div>
+                
+                <!-- Dims: Width x Length -->
+                <div id="matDims">
+                    <div class="row">
+                        <div class="form-group">
+                            <label data-i18n="mat_width">Mat. Width (mm):</label>
+                            <input type="number" id="matW" value="120">
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="mat_len_opt">Mat. Length (mm) (Optional):</label>
+                            <input type="number" id="matL" placeholder="Optional">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="mat_gap">Gap (mm):</label>
+                        <input type="number" id="matGap" value="5">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label data-i18n="mat_waste">Waste (%):</label>
+                    <input type="number" id="matWaste" value="10">
+                </div>
+                <button class="calc-btn" onclick="calcMaterial()" data-i18n="calc_mat_btn">Calculate Material</button>
+                <div class="result-box" id="matResult" style="display: none;"></div>
+            </div>
+        </div>
+        
+        <!-- STAIRS TAB -->
+        <div id="laiptai" class="tab-content">
+            <!-- Content kept from previous version -->
+            <div class="card">
+                <h3 data-i18n="stair_calc_title">Straight Stair Calculator</h3>
+                
+                <div class="form-group">
+                    <label data-i18n="stair_height">Total Height (H) mm:</label>
+                    <input type="number" id="stairH" placeholder="2600">
+                </div>
+                
+                <div class="form-group">
+                    <label data-i18n="stair_run">Total Run (L) mm (Optional):</label>
+                    <input type="number" id="stairL" placeholder="Optional max length">
+                    <small style="color:var(--text-muted); font-size:0.75rem;" data-i18n="stair_run_hint">Leave empty to calculate optimal length</small>
+                </div>
+
+                <div class="form-group">
+                    <label data-i18n="desired_rise">Desired Step Height (h) mm:</label>
+                    <input type="number" id="prefRise" value="160">
+                    <small style="color:var(--text-muted); font-size:0.75rem;">TEK17 Indoor ≤180mm / Outdoor ≤160mm</small>
+                </div>
+
+                <button class="calc-btn" onclick="calcStairs()" data-i18n="calc_stair_btn">Calculate Stairs</button>
+                <div class="result-box" id="stairResult" style="display: none;"></div>
+            </div>
+
+            <div class="card">
+                <h3 data-i18n="stair_info_title">Practical Carpenter Rules (TEK17)</h3>
+                
+                <!-- Quick Method Box -->
+                <div class="info-box" style="border-left-color: var(--primary); background: #ebf8ff;">
+                    <strong data-i18n="stair_quick_title">Quick On-Site Method:</strong>
+                    <ol style="margin: 5px 0 0 20px; font-size:0.9rem;">
+                        <li data-i18n="stair_quick_1">Measure Total Height (H).</li>
+                        <li data-i18n="stair_quick_2">Divide by ~150-160mm (Outdoor) or 170 (Indoor). Round.</li>
+                        <li data-i18n="stair_quick_3">Calc Exact Rise = H / Steps.</li>
+                        <li data-i18n="stair_quick_4">Calc Depth = 630 - 2*Rise.</li>
+                    </ol>
+                </div>
+
+                <div class="info-box">
+                    <p>
+                        <b data-i18n="stair_formula">Blondel Formula:</b> 2 x Rise + Run = 620 - 640 mm
+                        <br>
+                        <small style="color:var(--text-muted);" data-i18n="stair_blondel_expl">Comfort rule based on average human stride (~63cm).</small>
+                    </p>
+                    <ul style="padding-left: 20px; margin: 5px 0;">
+                        <li data-i18n="stair_std_priv"><b>Private (Indoor):</b> h≤180mm, d≥250mm</li>
+                        <li data-i18n="stair_std_out"><b>Outdoor (Terrace):</b> h=130-160mm, d=280-320mm</li>
+                        <li data-i18n="stair_std_rail"><b>Handrail:</b> Stairs=900mm, Terrace≥1000mm</li>
+                    </ul>
+                </div>
+                
+                <h3 style="margin-top:20px; font-size:1rem; border-bottom:none;" data-i18n="table_title">Standard Terrace Stairs</h3>
+                <table class="std-table">
+                    <thead>
+                        <tr><th data-i18n="table_h">Height (mm)</th><th data-i18n="table_steps">Steps</th><th>Info</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>150 - 400</td><td>1 - 3</td><td>h ~150</td></tr>
+                        <tr><td>450 - 700</td><td>4 - 5</td><td>h ~140-150</td></tr>
+                        <tr><td>750 - 900</td><td>5 - 6</td><td>h ~150</td></tr>
+                        <tr><td>900 - 1200</td><td>6 - 8</td><td>h ~150-160</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
 <script>
@@ -326,7 +509,43 @@
             gutter_rule_title: "Gutter Rule (1/3):", 
             gutter_rule_text: "Adjust LAT so the first tile hangs ~1/3 into the gutter width. Ensure water drips into the channel.",
             legend_lat: "LAT (Lekteavstand Takfot (Distance from Eaves edge to Top of 1st batten)",
-            legend_laf: "LAF (Lekteavstand Møne (Distance from Top of last batten to Ridge center)"
+            legend_laf: "LAF (Lekteavstand Møne (Distance from Top of last batten to Ridge center)",
+
+            // Stairs
+            stair_calc_title: "Straight Stair Calculator", stair_height: "Total Height (H) mm:",
+            stair_run: "Total Run (L) mm (Optional):", stair_run_hint: "Leave empty to calculate optimal length",
+            desired_rise: "Desired Step Height (h) mm:", calc_stair_btn: "Calculate Stairs",
+            stair_info_title: "Practical Rules (TEK17)",
+            stair_quick_title: "Quick On-Site Method:",
+            stair_quick_1: "Measure Total Height (H).", stair_quick_2: "Divide by ~150-160mm (Outdoor) or 170 (Indoor). Round.",
+            stair_quick_3: "Calc Exact Rise = H / Steps.", stair_quick_4: "Calc Depth = 630 - 2*Rise.",
+            stair_formula: "<b>Blondel Formula:</b> 2 x Rise + Run = 620 - 640 mm",
+            stair_blondel_expl: "Comfort rule based on average human stride (~63cm).",
+            stair_std_priv: "<b>Private (Indoor):</b> h≤180mm, d≥250mm",
+            stair_std_out: "<b>Outdoor (Terrace):</b> h=130-160mm, d=280-320mm",
+            stair_std_rail: "<b>Handrail:</b> Stairs=900mm, Terrace≥1000mm",
+            res_total_h: "Total Height:", res_total_l: "Total Length (Projection):",
+            res_steps: "Number of Steps:", res_rise: "Rise (h):", res_run: "Run/Depth (d):",
+            res_angle: "Angle:", res_total_run: "Total Run:", res_blondel: "Comfort (2h+d):",
+            res_stringer: "Stringer Length:", res_cut_top: "Top Cut:", res_cut_bot: "Bottom Cut:",
+            comfort_ok: "Perfect", comfort_acceptable: "Acceptable", comfort_bad: "Not Recommended",
+            table_title: "Standard Terrace Stairs", table_h: "Height (mm)", table_steps: "Steps",
+
+            // Areas
+            area_pythagoras_title: "90° Angle Check (Pythagoras)", area_side_a: "Side A (mm):", area_side_b: "Side B (mm):",
+            calc_diag_btn: "Calculate Diagonal", res_diag: "Diagonal (Hypotenuse):",
+            true_angle_title: "Find Real Angle (from Sides & Diag)", measured_diag: "Measured Diagonal (mm):", calc_angle_btn: "Calculate Angle",
+            res_measured_angle: "Calculated Angle:",
+            
+            area_calc_title: "Surface Area Calculator", area_shape: "Shape:", 
+            shape_rect: "Rectangle (Floor/Wall)", shape_tri: "Triangle (Gable)", shape_roof: "Roof Slope Area",
+            area_width_base: "Width / Base (m):", area_len_height: "Length / Height (m):", roof_pitch_deg: "Roof Pitch (°):",
+            calc_area_btn: "Calculate Area", res_area: "Total Area:",
+            
+            mat_calc_title: "Material Estimator", mat_type: "Material Type:", 
+            mat_decking: "Decking / Flooring", mat_drywall: "Drywall / Panels", mat_tiles: "Tiles (General)",
+            mat_total_area: "Total Area (m²):", mat_width: "Mat. Width (mm):", mat_len_opt: "Mat. Length (mm) (Optional):", mat_gap: "Gap (mm):",
+            mat_waste: "Waste (%):", calc_mat_btn: "Calculate Material", res_total_qty: "Total Quantity:", res_total_lm: "Total Linear Meters:"
         },
         no: {
             menu_framing: "Reisverk", menu_roof: "Tak", menu_areas: "Areal", menu_stairs: "Trapper",
@@ -364,7 +583,43 @@
             gutter_rule_title: "Takrenneregel (1/3):", 
             gutter_rule_text: "Juster LAT slik at første takstein stikker ca 1/3 ut i takrennen. Vannet må dryppe i rennen.",
             legend_lat: "LAT (Lekteavstand Takfot - Avstand fra raftkant til topp av 1. lekte)",
-            legend_laf: "LAF (Lekteavstand Møne - Avstand fra topp av siste lekte til møne)"
+            legend_laf: "LAF (Lekteavstand Møne - Avstand fra topp av siste lekte til møne)",
+
+            // Stairs
+            stair_calc_title: "Trappekalkulator (Rett løp)", stair_height: "Total høyde (H) mm:",
+            stair_run: "Total lengde (L) mm (Valgfri):", stair_run_hint: "La stå tom for optimal lengde",
+            desired_rise: "Ønsket opptrinn (h) mm:", calc_stair_btn: "Beregn trapp",
+            stair_info_title: "Praktiske Regler (TEK17)",
+            stair_quick_title: "Rask metode på byggeplass:",
+            stair_quick_1: "Mål total høyde (H).", stair_quick_2: "Del på ~150-160mm (Ute) eller 170 (Inne). Rund av.",
+            stair_quick_3: "Beregn Opptrinn = H / Antall.", stair_quick_4: "Beregn Inntrinn = 630 - 2*Opptrinn.",
+            stair_formula: "<b>Blondels formel:</b> 2 x Opptrinn + Inntrinn = 620 - 640 mm",
+            stair_blondel_expl: "Komfortregel basert på gjennomsnittlig skrittlengde (~63cm).",
+            stair_std_priv: "<b>Inne (Privat):</b> h≤180mm, d≥250mm",
+            stair_std_out: "<b>Ute (Terrasse):</b> h=130-160mm, d=280-320mm",
+            stair_std_rail: "<b>Rekkverk:</b> Trapp=900mm, Terrasse≥1000mm",
+            res_total_h: "Total høyde:", res_total_l: "Total lengde (Prosjektering):",
+            res_steps: "Antall trinn:", res_rise: "Opptrinn (h):", res_run: "Inntrinn (d):",
+            res_angle: "Vinkel:", res_total_run: "Total lengde:", res_blondel: "Komfort (2h+d):",
+            res_stringer: "Vange lengde:", res_cut_top: "Kapp vinkel topp:", res_cut_bot: "Kapp vinkel bunn:",
+            comfort_ok: "Perfekt", comfort_acceptable: "Akseptabel", comfort_bad: "Anbefales ikke",
+            table_title: "Standard Terrassetrapper", table_h: "Høyde (mm)", table_steps: "Trinn",
+
+            // Areas
+            area_pythagoras_title: "90° Vinkel (Pytagoras)", area_side_a: "Side A (mm):", area_side_b: "Side B (mm):",
+            calc_diag_btn: "Beregn Diagonal", res_diag: "Diagonal (Hypotenus):",
+            true_angle_title: "Finn Vinkel (fra Sider & Diag)", measured_diag: "Målt Diagonal (mm):", calc_angle_btn: "Beregn Vinkel",
+            res_measured_angle: "Beregnet Vinkel:",
+            
+            area_calc_title: "Areal Kalkulator", area_shape: "Form:", 
+            shape_rect: "Rektangel (Gulv/Vegg)", shape_tri: "Trekant (Gavl)", shape_roof: "Takflate (Skråtak)",
+            area_width_base: "Bredde / Grunnlinje (m):", area_len_height: "Lengde / Høyde (m):", roof_pitch_deg: "Takvinkel (°):",
+            calc_area_btn: "Beregn Areal", res_area: "Totalt Areal:",
+            
+            mat_calc_title: "Materialmengde", mat_type: "Materialtype:", 
+            mat_decking: "Terrasse / Gulv", mat_drywall: "Gipsplater / Plater", mat_tiles: "Fliser (Generelt)",
+            mat_total_area: "Totalt Areal (m²):", mat_width: "Mat. Bredde (mm):", mat_len_opt: "Mat. Lengde (mm) (Valgfri):", mat_gap: "Avstand (mm):",
+            mat_waste: "Kapp (%):", calc_mat_btn: "Beregn Materialer", res_total_qty: "Totalt Antall:", res_total_lm: "Totalt Løpemeter:"
         },
         pl: {
             menu_framing: "Konstrukcje", menu_roof: "Dach", menu_areas: "Powierzchnie", menu_stairs: "Schody",
@@ -402,7 +657,43 @@
             gutter_rule_title: "Zasada rynny (1/3):", 
             gutter_rule_text: "Dostosuj LAT tak, aby pierwsza dachówka wystawała na ~1/3 szerokości rynny. Woda musi kapać do rynny.",
             legend_lat: "LAT (Odległość od krawędzi okapu do góry 1. łaty)",
-            legend_laf: "LAF (Odległość od góry ostatniej łaty do kalenicy)"
+            legend_laf: "LAF (Odległość od góry ostatniej łaty do kalenicy)",
+
+            // Stairs
+            stair_calc_title: "Kalkulator Schodów Prostych", stair_height: "Wysokość całkowita (H) mm:",
+            stair_run: "Długość całkowita (L) mm (Opcjonalnie):", stair_run_hint: "Zostaw puste dla optymalnej długości",
+            desired_rise: "Pożądana wys. stopnia (h) mm:", calc_stair_btn: "Oblicz Schody",
+            stair_info_title: "Zasady Praktyczne (TEK17)",
+            stair_quick_title: "Szybka metoda na budowie:",
+            stair_quick_1: "Zmierz Wysokość (H).", stair_quick_2: "Podziel przez ~150-160mm (Zewn) lub 170 (Wewn). Zaokrąglij.",
+            stair_quick_3: "Oblicz Dokładny Wznios = H / Ilość.", stair_quick_4: "Oblicz Głębokość = 630 - 2*Wznios.",
+            stair_formula: "<b>Wzór Blondela:</b> 2 x Wznios + Głębokość = 620 - 640 mm",
+            stair_blondel_expl: "Zasada komfortu oparta na długości kroku człowieka (~63cm).",
+            stair_std_priv: "<b>Wewnętrzne:</b> h≤180mm, d≥250mm",
+            stair_std_out: "<b>Zewnętrzne (Taras):</b> h=130-160mm, d=280-320mm",
+            stair_std_rail: "<b>Poręcz:</b> Schody=900mm, Taras≥1000mm",
+            res_total_h: "Wysokość całk.:", res_total_l: "Długość całk. (Rzut):",
+            res_steps: "Liczba stopni:", res_rise: "Wysokość (h):", res_run: "Głębokość (d):",
+            res_angle: "Kąt:", res_total_run: "Długość całk.:", res_blondel: "Komfort (2h+d):",
+            res_stringer: "Długość policzka:", res_cut_top: "Kąt cięcia góra:", res_cut_bot: "Kąt cięcia dół:",
+            comfort_ok: "Idealne", comfort_acceptable: "Akceptowalne", comfort_bad: "Niezalecane",
+            table_title: "Standardowe Schody Tarasowe", table_h: "Wysokość (mm)", table_steps: "Stopnie",
+
+            // Areas
+            area_pythagoras_title: "Kąt 90° (Pitagoras)", area_side_a: "Bok A (mm):", area_side_b: "Bok B (mm):",
+            calc_diag_btn: "Oblicz Przekątną", res_diag: "Przekątna (Przeciwprostokątna):",
+            true_angle_title: "Znajdź Prawdziwy Kąt (z Boków i Przekątnej)", measured_diag: "Zmierzona Przekątna (mm):", calc_angle_btn: "Oblicz Kąt",
+            res_measured_angle: "Obliczony Kąt:",
+            
+            area_calc_title: "Kalkulator Powierzchni", area_shape: "Kształt:", 
+            shape_rect: "Prostokąt (Podłoga/Ściana)", shape_tri: "Trójkąt (Szczyt)", shape_roof: "Powierzchnia Dachu (Skos)",
+            area_width_base: "Szerokość / Podstawa (m):", area_len_height: "Długość / Wysokość (m):", roof_pitch_deg: "Kąt Dachu (°):",
+            calc_area_btn: "Oblicz Powierzchnię", res_area: "Całkowita Powierzchnia:",
+            
+            mat_calc_title: "Szacowanie Materiału", mat_type: "Rodzaj Materiału:", 
+            mat_decking: "Taras / Podłoga", mat_drywall: "Gips / Płyty", mat_tiles: "Płytki (Ogólne)",
+            mat_total_area: "Całkowita Powierzchnia (m²):", mat_width: "Szer. Materiału (mm):", mat_len_opt: "Dł. Materiału (mm) (Opcja):", mat_gap: "Szczelina (mm):",
+            mat_waste: "Odpad (%):", calc_mat_btn: "Oblicz Materiał", res_total_qty: "Całkowita Ilość:", res_total_lm: "Metry Bieżące:"
         },
         lt: {
             menu_framing: "Karkasas", menu_roof: "Stogas", menu_areas: "Plotai / Kampai", menu_stairs: "Laiptai",
@@ -440,7 +731,43 @@
             gutter_rule_title: "Latako taisyklė (1/3):", 
             gutter_rule_text: "Nustatykite LAT taip, kad pirma čerpė išsikištų ~1/3 į latako plotį. Vanduo turi lašėti į vidų.",
             legend_lat: "LAT (Lekteavstand Takfot - Atstumas nuo karnizo iki 1 grebėsto viršaus)",
-            legend_laf: "LAF (Lekteavstand Møne - Atstumas nuo paskutinio grebėsto viršaus iki kraigo)"
+            legend_laf: "LAF (Lekteavstand Møne - Atstumas nuo paskutinio grebėsto viršaus iki kraigo)",
+
+            // Stairs
+            stair_calc_title: "Laiptų skaičiuoklė (Tiesūs)", stair_height: "Bendras aukštis (H) mm:",
+            stair_run: "Bendras ilgis (L) mm (Nebūtina):", stair_run_hint: "Palikti tuščią optimaliam ilgiui",
+            desired_rise: "Norimas pakopos aukštis (h) mm:", calc_stair_btn: "Skaičiuoti laiptus",
+            stair_info_title: "Praktinės taisyklės (TEK17)",
+            stair_quick_title: "Greitas metodas objekte:",
+            stair_quick_1: "Išmatuok aukštį (H).", stair_quick_2: "Dalink iš ~150-160mm (lauke) arba 170 (viduje). Suapvalink.",
+            stair_quick_3: "Tikslus aukštis = H / Kiekio.", stair_quick_4: "Gylis = 630 - 2*Aukštis.",
+            stair_formula: "<b>Blondelio formulė:</b> 2 x Aukštis + Gylis = 620 - 640 mm",
+            stair_blondel_expl: "Komforto taisyklė, paremta žmogaus žingsnio ilgiu (~63cm).",
+            stair_std_priv: "<b>Vidaus:</b> h≤180mm, d≥250mm",
+            stair_std_out: "<b>Lauko (Terasos):</b> h=130-160mm, d=280-320mm",
+            stair_std_rail: "<b>Turėklai:</b> Laiptų=900mm, Terasos≥1000mm",
+            res_total_h: "Bendras aukštis:", res_total_l: "Bendras ilgis (Projekcija):",
+            res_steps: "Pakopų skaičius:", res_rise: "Aukštis (h):", res_run: "Gylis (d):",
+            res_angle: "Kampas:", res_total_run: "Bendras ilgis:", res_blondel: "Komfortas (2h+d):",
+            res_stringer: "Sijos ilgis:", res_cut_top: "Pjovimas viršuje:", res_cut_bot: "Pjovimas apačioje:",
+            comfort_ok: "Idealu", comfort_acceptable: "Priimtina", comfort_bad: "Nerekomenduojama",
+            table_title: "Standartiniai Terasos Laiptai", table_h: "Aukštis (mm)", table_steps: "Pakopos",
+
+            // Areas
+            area_pythagoras_title: "90° Kampo radimas (Pitagoras)", area_side_a: "Kraštinė A (mm):", area_side_b: "Kraštinė B (mm):",
+            calc_diag_btn: "Skaičiuoti Įstrižainę", res_diag: "Įstrižainė (Hipotenuzė):",
+            true_angle_title: "Rasti Tikrą Kampą (iš Kraštinių ir Įstriž.)", measured_diag: "Išmatuota Įstrižainė (mm):", calc_angle_btn: "Skaičiuoti Kampą",
+            res_measured_angle: "Apskaičiuotas Kampas:",
+            
+            area_calc_title: "Ploto Skaičiuoklė", area_shape: "Forma:", 
+            shape_rect: "Stačiakampis (Grindys/Siena)", shape_tri: "Trikampis (Grybas)", shape_roof: "Stogo Šlaitas",
+            area_width_base: "Plotis / Pagrindas (m):", area_len_height: "Ilgis / Aukštis (m):", roof_pitch_deg: "Stogo kampas (°):",
+            calc_area_btn: "Skaičiuoti Plotą", res_area: "Bendras Plotas:",
+            
+            mat_calc_title: "Medžiagų Kiekis", mat_type: "Medžiagos Tipas:", 
+            mat_decking: "Terasa / Parketas", mat_drywall: "Gipsas / Plokštės", mat_tiles: "Plytelės (Bendrai)",
+            mat_total_area: "Bendras Plotas (m²):", mat_width: "Medž. Plotis (mm):", mat_len_opt: "Medž. Ilgis (mm) (Neprivaloma):", mat_gap: "Tarpas (mm):",
+            mat_waste: "Atsarga (%):", calc_mat_btn: "Skaičiuoti Medžiagas", res_total_qty: "Viso Vienetų:", res_total_lm: "Viso bėginių metrų:"
         }
     };
 
@@ -457,7 +784,7 @@
         document.querySelectorAll('[data-i18n]').forEach(el => {
             let key = el.getAttribute('data-i18n');
             if (translations[lang][key]) {
-                if(key.startsWith('std_')) {
+                if(key.startsWith('std_') || key.startsWith('stair_std_') || key === 'stair_formula') {
                     el.innerHTML = translations[lang][key];
                 } else {
                     el.innerText = translations[lang][key];
@@ -466,7 +793,7 @@
         });
         
         // Update selects
-        ["startMode", "tapeHook", "spacingCc", "roofHook", "roofPitch"].forEach(id => {
+        ["startMode", "tapeHook", "spacingCc", "roofHook", "roofPitch", "areaShape", "matType"].forEach(id => {
             let select = document.getElementById(id);
             if(select) {
                 for(let opt of select.options) {
@@ -480,7 +807,10 @@
         if(document.getElementById('spacingResult').style.display === 'block') calcSpacing();
         if(document.getElementById('studResult').style.display === 'block') calcStudHeight();
         if(document.getElementById('roofResult').style.display === 'block') calcRoof();
+        if(document.getElementById('stairResult').style.display === 'block') calcStairs();
         updateRoofHints();
+        toggleShapeInputs();
+        toggleMatInputs();
     }
     
     function updateRoofHints() {
@@ -500,6 +830,64 @@
     function toggleInnerWallInput() {
         document.getElementById('innerWallGroup').style.display = 
             (document.getElementById('startMode').value === 'inner') ? 'block' : 'none';
+    }
+    
+    function toggleShapeInputs() {
+        let shape = document.getElementById('areaShape').value;
+        let pitchGroup = document.getElementById('roofPitchGroup');
+        let lblW = document.getElementById('lblW');
+        let lblL = document.getElementById('lblL');
+        let lang = document.getElementById('lang-select').value;
+        
+        // Default translation
+        let txtW = translations[lang].area_width_base;
+        let txtL = translations[lang].area_len_height;
+        
+        if (shape === 'roof') {
+            pitchGroup.style.display = 'block';
+            // Custom labels for roof
+            if(lang === 'en') { txtW = "House Width (Gable) (m):"; txtL = "House Length (m):"; }
+            if(lang === 'no') { txtW = "Husbredde (Gavl) (m):"; txtL = "Huslengde (m):"; }
+            if(lang === 'pl') { txtW = "Szerokość Domu (m):"; txtL = "Długość Domu (m):"; }
+            if(lang === 'lt') { txtW = "Namo Plotis (m):"; txtL = "Namo Ilgis (m):"; }
+        } else if (shape === 'triangle') {
+            pitchGroup.style.display = 'none';
+            if(lang === 'en') { txtW = "Base (m):"; txtL = "Height (m):"; }
+            if(lang === 'no') { txtW = "Grunnlinje (m):"; txtL = "Høyde (m):"; }
+            if(lang === 'pl') { txtW = "Podstawa (m):"; txtL = "Wysokość (m):"; }
+            if(lang === 'lt') { txtW = "Pagrindas (m):"; txtL = "Aukštinė (m):"; }
+        } else {
+            pitchGroup.style.display = 'none';
+        }
+        
+        lblW.innerText = txtW;
+        lblL.innerText = txtL;
+    }
+    
+    function updateMatDefaults() {
+        let type = document.getElementById('matType').value;
+        // Defaults
+        if(type === 'decking') {
+            document.getElementById('matW').value = 120;
+            document.getElementById('matGap').value = 5;
+            document.getElementById('matWaste').value = 10;
+        }
+        else if(type === 'drywall') {
+            document.getElementById('matW').value = 1200;
+            document.getElementById('matL').value = 2400; // Default length
+            document.getElementById('matGap').value = 0;
+            document.getElementById('matWaste').value = 10;
+        }
+        else if(type === 'tiles') {
+            document.getElementById('matW').value = 300; // Generic tile
+            document.getElementById('matL').value = 300; 
+            document.getElementById('matGap').value = 3;
+            document.getElementById('matWaste').value = 8;
+        }
+    }
+    
+    function toggleMatInputs() {
+        // Always show dimensions, as user requested flexibility
     }
 
     function calcStudHeight() {
@@ -656,6 +1044,200 @@
 
         let rb = document.getElementById('roofResult');
         rb.innerHTML = html; 
+        rb.style.display = "block";
+    }
+
+    function calcStairs() {
+        let H = parseFloat(document.getElementById('stairH').value);
+        let L = parseFloat(document.getElementById('stairL').value);
+        let hPref = parseFloat(document.getElementById('prefRise').value) || 160;
+        let lang = document.getElementById('lang-select').value;
+
+        if(!H) return;
+
+        // Calculate Steps count
+        let count = Math.round(H / hPref);
+        let rise = H / count;
+        
+        // Calculate Run (d)
+        let runCount = count - 1;
+        let run = 0;
+        
+        if(L > 0) {
+            run = L / runCount;
+        } else {
+            // Optimal run Blondel: 2h + d = 630
+            run = 630 - (2 * rise);
+            L = run * runCount;
+        }
+
+        // Blondel Check
+        let blondel = (2 * rise) + run;
+        let comfortClass = "comfort_ok";
+        let comfortColor = "var(--success)";
+        
+        if (blondel < 600 || blondel > 640) {
+            comfortClass = "comfort_acceptable";
+            comfortColor = "orange";
+        }
+        if (blondel < 580 || blondel > 660) {
+            comfortClass = "comfort_bad";
+            comfortColor = "red";
+        }
+
+        // Angle
+        let angleRad = Math.atan(rise / run);
+        let angleDeg = angleRad * (180 / Math.PI);
+        
+        // Stringer Length (Hypotenuse of TOTAL rise and run)
+        let stringerLen = Math.sqrt(Math.pow(H, 2) + Math.pow(L, 2));
+        
+        // Cut Angles
+        let cutBot = angleDeg;
+        let cutTop = 90 - angleDeg;
+
+        let html = `<div class="info-box" style="border-left-color:${comfortColor}">
+            ${translations[lang].res_total_h} <b>${H.toFixed(0)} mm</b><br>
+            ${translations[lang].res_total_l} <b>${L.toFixed(0)} mm</b><br>
+            <hr style="border:0; border-top:1px solid #ccc; margin:5px 0;">
+            ${translations[lang].res_steps} <b>${count}</b> (${runCount} runs)<br>
+            ${translations[lang].res_rise} <b class="big-result">${rise.toFixed(1)} mm</b>
+            ${translations[lang].res_run} <b>${run.toFixed(1)} mm</b><br>
+            ${translations[lang].res_angle} <b>${angleDeg.toFixed(1)}°</b><br>
+            <br>
+            ${translations[lang].res_stringer} <b>${stringerLen.toFixed(0)} mm</b><br>
+            ${translations[lang].res_cut_top} <b>${cutTop.toFixed(1)}°</b><br>
+            ${translations[lang].res_cut_bot} <b>${cutBot.toFixed(1)}°</b><br>
+            <br>
+            ${translations[lang].res_blondel} <b>${blondel.toFixed(0)} mm</b> - <span style="color:${comfortColor}; font-weight:bold;">${translations[lang][comfortClass]}</span>
+        </div>`;
+
+        let rb = document.getElementById('stairResult');
+        rb.innerHTML = html;
+        rb.style.display = "block";
+    }
+    
+    // NEW FUNCTIONS FOR AREA/ANGLES
+    
+    function calcPythagoras() {
+        let a = parseFloat(document.getElementById('sideA').value);
+        let b = parseFloat(document.getElementById('sideB').value);
+        let lang = document.getElementById('lang-select').value;
+        
+        if(!a || !b) return;
+        
+        let c = Math.sqrt(Math.pow(a, 2) + Math.pow(b, 2));
+        
+        let html = `<div class="info-box">
+            ${translations[lang].res_diag} <b class="big-result">${c.toFixed(1)} mm</b>
+        </div>`;
+        
+        let rb = document.getElementById('pythResult');
+        rb.innerHTML = html;
+        rb.style.display = "block";
+    }
+    
+    function calcTrueAngle() {
+        // Law of Cosines: c^2 = a^2 + b^2 - 2ab cos(C)
+        // cos(C) = (a^2 + b^2 - c^2) / 2ab
+        let a = parseFloat(document.getElementById('angSideA').value);
+        let b = parseFloat(document.getElementById('angSideB').value);
+        let c = parseFloat(document.getElementById('measuredDiag').value);
+        let lang = document.getElementById('lang-select').value;
+        
+        if(!a || !b || !c) return;
+        
+        let cosC = (Math.pow(a,2) + Math.pow(b,2) - Math.pow(c,2)) / (2 * a * b);
+        // Clamp to -1..1 just in case
+        cosC = Math.max(-1, Math.min(1, cosC));
+        let angleRad = Math.acos(cosC);
+        let angleDeg = angleRad * (180 / Math.PI);
+        
+        // Squareness check
+        let isSquare = Math.abs(angleDeg - 90) < 0.5;
+        let color = isSquare ? "var(--success)" : "orange";
+        
+        let html = `<div class="info-box" style="border-left-color:${color}">
+            ${translations[lang].res_measured_angle} <b style="font-size:1.2rem">${angleDeg.toFixed(2)}°</b>
+        </div>`;
+        
+        let rb = document.getElementById('angleResult');
+        rb.innerHTML = html;
+        rb.style.display = "block";
+    }
+    
+    function calcArea() {
+        let w = parseFloat(document.getElementById('areaW').value);
+        let l = parseFloat(document.getElementById('areaL').value);
+        let shape = document.getElementById('areaShape').value;
+        let lang = document.getElementById('lang-select').value;
+        
+        if(!w || !l) return;
+        
+        let area = 0;
+        if(shape === 'rect') area = w * l;
+        if(shape === 'triangle') area = (w * l) / 2;
+        if(shape === 'roof') {
+            let pitch = parseFloat(document.getElementById('areaPitch').value) || 0;
+            // w is House Width (gable). l is House Length.
+            // Slope Length = (Width/2) / cos(pitch)
+            // Area = 2 * SlopeLength * Length (both sides) or just 1? Usually "Roof Area" implies total.
+            // Let's assume total 2 sides for standard gable roof.
+            let slopeLen = (w / 2) / Math.cos(pitch * (Math.PI / 180));
+            area = 2 * slopeLen * l;
+        }
+        
+        let html = `<div class="info-box">
+            ${translations[lang].res_area} <b class="big-result">${area.toFixed(2)} m²</b>
+        </div>`;
+        
+        let rb = document.getElementById('areaResult');
+        rb.innerHTML = html;
+        rb.style.display = "block";
+    }
+    
+    function calcMaterial() {
+        let area = parseFloat(document.getElementById('matArea').value);
+        let waste = parseFloat(document.getElementById('matWaste').value) || 0;
+        let lang = document.getElementById('lang-select').value;
+        
+        // Dims
+        let w = parseFloat(document.getElementById('matW').value);
+        let l = parseFloat(document.getElementById('matL').value) || 0; // Optional length
+        let gap = parseFloat(document.getElementById('matGap').value) || 0;
+        
+        if(!area || !w) return;
+        
+        let html = "";
+        
+        // Effective width (mm -> m)
+        let effW = (w + gap) / 1000;
+        
+        // Linear meters needed based on area coverage: Area / Effective Width
+        // This assumes random lengths or total linear coverage.
+        let lm = area / effW;
+        let totalLM = lm * (1 + waste/100);
+        
+        html = `<div class="info-box">
+            ${translations[lang].res_total_lm} <b class="big-result">${totalLM.toFixed(1)} m</b>
+        </div>`;
+        
+        // If Length provided, calculate Pieces
+        if (l > 0) {
+            // Pieces = TotalLM / (Length in m)
+            let lenM = l / 1000;
+            let pieces = Math.ceil(totalLM / lenM);
+            // Alternatively: Area of one piece = (effW * lenM)
+            // Pieces = Total Area / Piece Area (with waste)
+            
+            html += `<div class="info-box" style="margin-top:5px; background:#fffaf0; border-left-color:var(--accent)">
+                ${translations[lang].res_total_qty} <b class="big-result">${pieces} pcs</b>
+                <small>(${w}x${l} mm)</small>
+            </div>`;
+        }
+        
+        let rb = document.getElementById('matResult');
+        rb.innerHTML = html;
         rb.style.display = "block";
     }
     
