@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProBuilder Calc by Vytautas Giedraitis</title>
+    <style>
+        :root {
+            --bg-color: #f7f9fa; --card-bg: #ffffff; --text-main: #2d3748;
+            --text-muted: #718096; --primary: #3182ce; --border: #e2e8f0; --accent: #dd6b20;
+            --success: #38a169;
+        }
+        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 0; }
+        
+        /* STICKY HEADER & LOGO */
+        header { 
+            background-color: var(--card-bg); 
+            padding: 10px 20px; 
+            border-bottom: 2px solid var(--primary); 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .logo-container { display: flex; align-items: center; gap: 15px; }
+        .logo-img { height: 40px; width: auto; object-fit: contain; }
+        h1 { margin: 0; font-size: 1.2rem; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; }
+        
+        select#lang-select { padding: 8px; border: 1px solid var(--border); border-radius: 5px; background: var(--bg-color); cursor: pointer; }
+        
+        /* STICKY TABS BELOW HEADER */
+        .tabs { 
+            display: flex; 
+            overflow-x: auto; 
+            background: var(--card-bg); 
+            padding: 0 10px; 
+            border-bottom: 1px solid var(--border); 
+            position: sticky; 
+            top: 62px; /* Height of header approx */
+            z-index: 999; 
+        }
+        .tab-btn { padding: 15px 20px; border: none; background: none; font-size: 0.9rem; color: var(--text-muted); cursor: pointer; white-space: nowrap; border-bottom: 3px solid transparent; transition: 0.3s; }
+        .tab-btn.active { color: var(--primary); border-bottom: 3px solid var(--primary); font-weight: bold; }
+        
+        .container { padding: 15px; max-width: 600px; margin: 0 auto; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .card { background: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid var(--border); }
+        h3 { margin-top: 0; font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 15px; color: var(--primary); }
+        
+        .form-group { margin-bottom: 12px; }
+        label { display: block; margin-bottom: 4px; font-weight: 600; font-size: 0.85rem; color: var(--text-main); }
+        input, select { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; font-size: 1rem; transition: border 0.2s; }
+        input:focus { border-color: var(--primary); outline: none; }
+        
+        .row { display: flex; gap: 10px; }
+        .row > div { flex: 1; }
+        
+        .checkbox-group { display: flex; align-items: center; gap: 10px; padding: 12px; background: #fffaf0; border: 1px solid #feebc8; border-radius: 6px; margin: 15px 0; }
+        .checkbox-group input { width: 22px; height: 22px; margin: 0; cursor: pointer; }
+        
+        button.calc-btn { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; margin-top: 10px; transition: background 0.2s; }
+        button.calc-btn:hover { background: #2b6cb0; }
+        
+        .result-box { margin-top: 20px; padding: 15px; background: #ebf8ff; border-left: 5px solid var(--primary); border-radius: 4px; }
+        .info-box { background: #fff5f5; padding: 12px; border-radius: 6px; border-left: 5px solid #f56565; margin-bottom: 15px; font-size: 0.9rem; line-height: 1.4; }
+        
+        .list-item { padding: 10px 0; border-bottom: 1px solid #edf2f7; display: flex; justify-content: space-between; align-items: center; }
+        .mark-edge { color: #2d3748; font-weight: 800; font-size: 1.1rem; }
+        .mark-center { color: var(--text-muted); font-size: 0.85rem; }
+        .optimized-row { background-color: #fffaf0; border-left: 4px solid var(--accent); padding-left: 10px; }
+        .optimized-badge { font-size: 0.7rem; background: var(--accent); color: white; padding: 2px 6px; border-radius: 4px; margin-left: 5px; text-transform: uppercase; }
+        .warning-row { background-color: #fff5f5; border-left: 4px solid #f56565; padding-left: 10px; }
+        .warning-badge { font-size: 0.7rem; background: #f56565; color: white; padding: 2px 6px; border-radius: 4px; margin-left: 5px; text-transform: uppercase; }
+        
+        .big-result { font-size: 1.5rem; color: var(--success); text-align: center; display: block; margin-top: 10px; }
+        
+        table.std-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin-top: 10px; }
+        table.std-table th, table.std-table td { border: 1px solid var(--border); padding: 8px; text-align: left; }
+        table.std-table th { background-color: #f1f5f9; color: var(--text-main); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-container">
+            <img src="BU_Logo.png" alt="Logo" class="logo-img">
+            <h3>ProBuilder Calc by Vytautas G.</h3>
+        </div>
+        <select id="lang-select" onchange="changeLanguage()">
+            <option value="en">English</option>
+            <option value="no">Norsk</option>
+            <option value="pl">Polski</option>
+            <option value="lt">Lietuvių</option>
+        </select>
+    </header>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="openTab('karkasas')" data-i18n="menu_framing">Framing</button>
+        <button class="tab-btn" onclick="openTab('stogas')" data-i18n="menu_roof">Roof</button>
+        <button class="tab-btn" onclick="openTab('plotai')" data-i18n="menu_areas">Areas / Angles</button>
+        <button class="tab-btn" onclick="openTab('laiptai')" data-i18n="menu_stairs">Stairs</button>
+    </div>
+
+    <div class="container">
+        <!-- FRAME TAB -->
+        <div id="karkasas" class="tab-content active">
+            
+            <div class="card">
+                <h3 data-i18n="stud_spacing_title">1. Stud Layout (c/c)</h3>
+                <div class="row">
+                    <div class="form-group">
+                        <label data-i18n="wall_length">Wall length (mm):</label>
+                        <input type="number" id="wallLen" placeholder="4500">
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="spacing">Spacing c/c:</label>
+                        <select id="spacingCc">
+                            <option value="600">600 mm</option>
+                            <option value="400">400 mm</option>
+                            <option value="300">300 mm</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group">
+                        <label data-i18n="stud_thick">Stud thick. (mm):</label>
+                        <input type="number" id="studT" value="48">
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="start_point">Starting zero:</label>
+                        <select id="startMode" onchange="toggleInnerWallInput()">
+                            <option value="edge" data-i18n="start_edge">Outer edge</option>
+                            <option value="inner" data-i18n="start_inner">Inner corner</option>
+                            <option value="center" data-i18n="start_center">Center of wall</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group" id="innerWallGroup" style="display: none;">
+                    <label data-i18n="inner_wall_thick">Intersecting wall (mm):</label>
+                    <input type="number" id="innerWallT" value="148">
+                </div>
+
+                <div class="form-group">
+                    <label data-i18n="tape_hook">Tape hook:</label>
+                    <select id="tapeHook">
+                        <option value="left" data-i18n="hook_left">On Left (pull right)</option>
+                        <option value="right" data-i18n="hook_right">On Right (pull left)</option>
+                    </select>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="optimizeGap" checked>
+                    <label for="optimizeGap" data-i18n="opt_gap_label">Smart end (avoid < 15cm gaps)</label>
+                </div>
+
+                <button class="calc-btn" onclick="calcSpacing()" data-i18n="calc_spacing_btn">Calculate layout</button>
+                <div class="result-box" id="spacingResult" style="display: none;"></div>
+            </div>
+
+            <div class="card">
+                <h3 data-i18n="stud_height_title">2. Stud Height Calculator</h3>
+                <div class="form-group">
+                    <label data-i18n="total_wall_height">Total wall height (mm):</label>
+                    <input type="number" id="totalHeight" placeholder="2400">
+                </div>
+                <div class="row">
+                    <div class="form-group">
+                        <label data-i18n="bottom_svill_thick">Bottom plate (mm):</label>
+                        <input type="number" id="botSvillThick" value="48">
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="bottom_svill_count">Qty:</label>
+                        <input type="number" id="botSvillCount" value="1">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group">
+                        <label data-i18n="top_svill_thick">Top plate (mm):</label>
+                        <input type="number" id="topSvillThick" value="48">
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="top_svill_count">Qty:</label>
+                        <input type="number" id="topSvillCount" value="2">
+                    </div>
+                </div>
+                <button class="calc-btn" onclick="calcStudHeight()" data-i18n="calc_button">Calculate Height</button>
+                <div class="result-box" id="studResult" style="display: none;"></div>
+            </div>
+
+        </div>
+
+        <!-- ROOF TAB -->
+        <div id="stogas" class="tab-content">
+            <div class="card">
+                <h3 data-i18n="roof_batten_title">Roof Batten Spacing</h3>
+                
+                <div class="form-group">
+                     <label data-i18n="roof_len">Total Rafter Length (Eaves to Ridge):</label>
+                     <input type="number" id="roofLen" placeholder="6250">
+                </div>
+                
+                <div class="form-group">
+                    <label data-i18n="roof_pitch">Roof Pitch (Angle):</label>
+                    <select id="roofPitch" onchange="updateRoofHints()">
+                        <option value="low" data-i18n="pitch_low">< 22° (Low)</option>
+                        <option value="med" selected data-i18n="pitch_med">22° - 27° (Standard)</option>
+                        <option value="high" data-i18n="pitch_high">> 27° (Steep)</option>
+                    </select>
+                </div>
+
+                <div class="info-box" style="margin: 10px 0; border-left-color:var(--primary); background: #ebf8ff;">
+                     <p style="margin: 0; font-size:0.85rem;" data-i18n="pitch_rule_text">Note: Lower pitch = reduce step (more overlap). Higher pitch = allow larger step. Always check manufacturer.</p>
+                </div>
+
+                <div class="row">
+                    <div class="form-group">
+                        <label data-i18n="dist_lat">Eaves dist. (LAT) mm:</label>
+                        <input type="number" id="distLAT" placeholder="370" value="370">
+                        <small style="color:var(--text-muted); font-size:0.75rem;" data-i18n="lat_hint">Edge to Top of 1st batten</small>
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="dist_laf">Ridge dist. (LAF) mm:</label>
+                        <input type="number" id="distLAF" placeholder="40" value="40">
+                        <small style="color:var(--text-muted); font-size:0.75rem;" data-i18n="laf_hint">Top of last batten to Ridge (30-50mm)</small>
+                    </div>
+                </div>
+                
+                <div class="info-box" style="margin-top:-5px; border-left-color:var(--success); background: #f0fff4;">
+                     <strong data-i18n="gutter_rule_title">Gutter Rule (1/3):</strong>
+                     <p style="margin: 5px 0 0 0; font-size:0.85rem;" data-i18n="gutter_rule_text">Adjust LAT so the first tile hangs ~1/3 into the gutter width. Ensure water drips into the channel, not over or behind.</p>
+                </div>
+
+                <div class="row">
+                    <div class="form-group">
+                        <label data-i18n="max_step">Max Recommended Step (mm):</label>
+                        <input type="number" id="maxStep" placeholder="350" value="350">
+                        <small id="maxStepHint" style="color:var(--accent); font-weight:bold; display:block; margin-top:5px;">Recommended: ~340-350 mm</small>
+                        <small style="color:var(--text-muted); display:block; margin-top:2px;" data-i18n="step_hint">Tip: Tile length - Overlap (e.g., 420-70=350)</small>
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="batten_width">Batten Width (mm):</label>
+                        <input type="number" id="battenWidth" value="48">
+                        <small style="color:var(--text-muted); display:block; margin-top:5px;" data-i18n="spacer_hint">For spacer block calc</small>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label data-i18n="roof_hook">Tape Hook Position:</label>
+                    <select id="roofHook">
+                         <option value="bottom" data-i18n="hook_bottom">Bottom (Eaves)</option>
+                         <option value="top" data-i18n="hook_top">Top (Ridge)</option>
+                    </select>
+                </div>
+
+                <button class="calc-btn" onclick="calcRoof()" data-i18n="calc_roof_btn">Calculate Battens</button>
+                <div class="result-box" id="roofResult" style="display: none;"></div>
+            </div>
+            
+            <div class="card">
+                 <h3 data-i18n="roof_info_title">Typical Spacings (Norway)</h3>
+                 <div class="info-box">
+                     <ul style="padding-left: 20px; margin: 0;">
+                         <li data-i18n="std_clay"><b>Clay Tiles:</b> 330–370 mm</li>
+                         <li data-i18n="std_concrete"><b>Concrete Tiles:</b> 320–375 mm</li>
+                         <li data-i18n="std_metal"><b>Metal Tile:</b> ~350 mm</li>
+                         <li data-i18n="std_slate"><b>Slate (30x30):</b> 145–160 mm</li>
+                     </ul>
+                 </div>
+                 <div class="info-box" style="border-left-color: var(--accent); background: #fffaf0;">
+                     <strong data-i18n="note_title">Important:</strong>
+                     <p style="margin: 5px 0 0 0;" data-i18n="roof_cant_note">The first batten at eaves must be higher (or on edge) to compensate for tile angle.</p>
+                 </div>
+                 
+                 <h3 style="margin-top:20px; font-size:1rem; border-bottom:none;">Legend / Abbreviations</h3>
+                 <div style="font-size:0.85rem; color:var(--text-muted);">
+                     <p><b>LAT</b>: <span data-i18n="legend_lat">Lekteavstand Takfot (Distance from Eaves edge to Top of 1st batten)</span></p>
+                     <p><b>LAF</b>: <span data-i18n="legend_laf">Lekteavstand Møne (Distance from Top of last batten to Ridge center)</span></p>
+                 </div>
+            </div>
+        </div>
+        
+        <!-- AREAS / ANGLES TAB -->
+        <div id="plotai" class="tab-content">
+            <!-- 1. Right Angle (Pythagoras) -->
+            <div class="card">
+                <h3 data-i18n="area_pythagoras_title">90° Angle Check (Diagonal)</h3>
+                <div class="row">
+                    <div class="form-group">
+                        <label data-i18n="area_side_a">Side A (mm):</label>
+                        <input type="number" id="sideA" placeholder="3000">
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="area_side_b">Side B (mm):</label>
+                        <input type="number" id="sideB" placeholder="4000">
+                    </div>
+                </div>
+                <button class="calc-btn" onclick="calcPythagoras()" data-i18n="calc_diag_btn">Calculate Diagonal</button>
+                <div class="result-box" id="pythResult" style="display: none;"></div>
+                
+                <h4 style="margin: 15px 0 5px 0; border-top: 1px solid #eee; padding-top:10px;" data-i18n="diag_check_title">Frame Square Check</h4>
+                <div class="row">
+                    <div class="form-group">
+                        <label data-i18n="diag_1">Diagonal 1 (mm):</label>
+                        <input type="number" id="diag1">
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="diag_2">Diagonal 2 (mm):</label>
+                        <input type="number" id="diag2">
+                    </div>
+                </div>
+                <button class="calc-btn" style="background-color: var(--accent);" onclick="checkSquare()" data-i18n="check_btn">Check Squareness</button>
+                <div class="result-box" id="squareResult" style="display: none;"></div>
+            </div>
+
+            <!-- 2. Area Calculator -->
+            <div class="card">
+                <h3 data-i18n="area_calc_title">Surface Area Calculator</h3>
+                <div class="form-group">
+                    <label data-i18n="area_shape">Shape:</label>
+                    <select id="areaShape" onchange="toggleShapeInputs()">
+                        <option value="rect" data-i18n="shape_rect">Rectangle (Floor/Wall)</option>
+                        <option value="triangle" data-i18n="shape_tri">Triangle (Gable)</option>
+                        <option value="roof" data-i18n="shape_roof">Roof Slope Area</option>
+                    </select>
+                </div>
+                
+                <div class="row">
+                    <div class="form-group">
+                        <label id="lblW" data-i18n="area_width">Width / Base (m):</label>
+                        <input type="number" id="areaW" placeholder="4.0">
+                    </div>
+                    <div class="form-group">
+                        <label id="lblL" data-i18n="area_len">Length / Height (m):</label>
+                        <input type="number" id="areaL" placeholder="5.0">
+                    </div>
+                </div>
+                <div class="form-group" id="roofPitchGroup" style="display:none;">
+                    <label data-i18n="roof_pitch_deg">Roof Pitch (°):</label>
+                    <input type="number" id="areaPitch" placeholder="30">
+                </div>
+                
+                <button class="calc-btn" onclick="calcArea()" data-i18n="calc_area_btn">Calculate Area</button>
+                <div class="result-box" id="areaResult" style="display: none;"></div>
+            </div>
+
+            <!-- 3. Material Estimator -->
+            <div class="card">
+                <h3 data-i18n="mat_calc_title">Material Estimator</h3>
+                <div class="form-group">
+                    <label data-i18n="mat_type">Material Type:</label>
+                    <select id="matType" onchange="updateMatDefaults()">
+                        <option value="custom" data-i18n="mat_custom">Custom</option>
+                        <option value="decking" data-i18n="mat_decking">Decking Boards</option>
+                        <option value="drywall" data-i18n="mat_drywall">Drywall (1.2x2.4m)</option>
+                        <option value="tiles_conc" data-i18n="mat_tiles_c">Roof Tiles (Concrete)</option>
+                        <option value="tiles_clay" data-i18n="mat_tiles_cl">Roof Tiles (Clay)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label data-i18n="mat_total_area">Total Area (m²):</label>
+                    <input type="number" id="matArea" placeholder="20.0">
+                </div>
+                
+                <div id="matDims">
+                    <div class="row">
+                        <div class="form-group">
+                            <label data-i18n="mat_width">Mat. Width (mm):</label>
+                            <input type="number" id="matW" placeholder="120" value="120">
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="mat_gap">Gap (mm):</label>
+                            <input type="number" id="matGap" placeholder="5" value="5">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label data-i18n="mat_waste">Waste (%):</label>
+                    <input type="number" id="matWaste" value="10">
+                </div>
+                <button class="calc-btn" onclick="calcMaterial()" data-i18n="calc_mat_btn">Calculate Material</button>
+                <div class="result-box" id="matResult" style="display: none;"></div>
+                
+                <div class="info-box" style="margin-top:15px; font-size:0.85rem; color:var(--text-muted);">
+                    <strong data-i18n="mat_tips_title">Quick Waste Rules:</strong>
+                    <ul style="padding-left:20px; margin:5px 0;">
+                        <li>Decking: +10%</li>
+                        <li>Drywall: +10%</li>
+                        <li>Tiles: +5-8%</li>
+                        <li>Flooring: +7-10%</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- STAIRS TAB -->
+        <div id="laiptai" class="tab-content">
+            <div class="card">
+                <h3 data-i18n="stair_calc_title">Straight Stair Calculator</h3>
+                
+                <div class="form-group">
+                    <label data-i18n="stair_height">Total Height (H) mm:</label>
+                    <input type="number" id="stairH" placeholder="2600">
+                </div>
+                
+                <div class="form-group">
+                    <label data-i18n="stair_run">Total Run (L) mm (Optional):</label>
+                    <input type="number" id="stairL" placeholder="Optional max length">
+                    <small style="color:var(--text-muted); font-size:0.75rem;" data-i18n="stair_run_hint">Leave empty to calculate optimal length</small>
+                </div>
+
+                <div class="form-group">
+                    <label data-i18n="desired_rise">Desired Step Height (h) mm:</label>
+                    <input type="number" id="prefRise" value="160">
+                    <small style="color:var(--text-muted); font-size:0.75rem;">TEK17 Indoor ≤180mm / Outdoor ≤160mm</small>
+                </div>
+
+                <button class="calc-btn" onclick="calcStairs()" data-i18n="calc_stair_btn">Calculate Stairs</button>
+                <div class="result-box" id="stairResult" style="display: none;"></div>
+            </div>
+
+            <div class="card">
+                <h3 data-i18n="stair_info_title">Practical Carpenter Rules (TEK17)</h3>
+                
+                <!-- Quick Method Box -->
+                <div class="info-box" style="border-left-color: var(--primary); background: #ebf8ff;">
+                    <strong data-i18n="stair_quick_title">Quick On-Site Method:</strong>
+                    <ol style="margin: 5px 0 0 20px; font-size:0.9rem;">
+                        <li data-i18n="stair_quick_1">Measure Total Height (H).</li>
+                        <li data-i18n="stair_quick_2">Divide by ~150-160mm to get Steps Count. Round it.</li>
+                        <li data-i18n="stair_quick_3">Calc Exact Rise = H / Steps.</li>
+                        <li data-i18n="stair_quick_4">Calc Depth = 630 - 2*Rise (Blondel).</li>
+                    </ol>
+                </div>
+
+                <div class="info-box">
+                    <p>
+                        <b data-i18n="stair_formula">Blondel Formula:</b> 2 x Rise + Run = 620 - 640 mm
+                        <br>
+                        <small style="color:var(--text-muted);" data-i18n="stair_blondel_expl">Comfort rule based on average human stride (~63cm).</small>
+                    </p>
+                    <ul style="padding-left: 20px; margin: 5px 0;">
+                        <li data-i18n="stair_std_priv"><b>Private (Indoor):</b> h≤180mm, d≥250mm</li>
+                        <li data-i18n="stair_std_out"><b>Outdoor (Terrace):</b> h=130-160mm, d=280-320mm</li>
+                        <li data-i18n="stair_std_rail"><b>Handrail:</b> Stairs=900mm, Terrace≥1000mm</li>
+                    </ul>
+                </div>
+                
+                <h3 style="margin-top:20px; font-size:1rem; border-bottom:none;" data-i18n="table_title">Standard Terrace Stairs</h3>
+                <table class="std-table">
+                    <thead>
+                        <tr><th data-i18n="table_h">Height (mm)</th><th data-i18n="table_steps">Steps</th><th>Info</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>150 - 400</td><td>1 - 3</td><td>h ~150</td></tr>
+                        <tr><td>450 - 700</td><td>4 - 5</td><td>h ~140-150</td></tr>
+                        <tr><td>750 - 900</td><td>5 - 6</td><td>h ~150</td></tr>
+                        <tr><td>900 - 1200</td><td>6 - 8</td><td>h ~150-160</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+<script>
+    const translations = {
+        en: {
+            menu_framing: "Framing", menu_roof: "Roof", menu_areas: "Areas / Angles", menu_stairs: "Stairs",
+            stud_spacing_title: "1. Stud Layout (c/c)", wall_length: "Wall length (mm):", spacing: "Spacing c/c:",
+            stud_thick: "Stud thick. (mm):", start_point: "Starting zero:", start_edge: "Outer edge", 
+            start_inner: "Inner corner", start_center: "Center of wall", inner_wall_thick: "Intersecting wall (mm):",
+            tape_hook: "Tape hook:", hook_left: "On Left (pull right)", hook_right: "On Right (pull left)",
+            opt_gap_label: "Smart end (avoid < 15cm gaps)", calc_spacing_btn: "Calculate layout",
+            edge_mark: "Mark", center_mark: "Center", opt_badge: "Optimized", warn_badge: "Conflict",
+            instr_left: "Hook on LEFT. Put X to the RIGHT ➡️ of mark.",
+            instr_right: "Hook on RIGHT. Put X to the LEFT ⬅️ of mark.",
+            stud_height_title: "2. Stud Height Calculator", total_wall_height: "Total wall height (mm):",
+            bottom_svill_thick: "Bottom plate (mm):", bottom_svill_count: "Qty:",
+            top_svill_thick: "Top plate (mm):", top_svill_count: "Qty:", calc_button: "Calculate Height",
+            result_height: "Cut length:", placeholder_text: "Coming soon...", positions_result: "Marking positions:",
+            pos_start: "Start Stud", pos_end: "End Stud", pos_grid: "Grid", pos_opt: "Optimized",
+            
+            // Roof
+            roof_batten_title: "Roof Batten Spacing", roof_len: "Total Rafter Length (Eaves to Ridge):", 
+            dist_lat: "Eaves dist. (LAT) mm:", dist_laf: "Ridge dist. (LAF) mm:", 
+            lat_hint: "Edge to Top of 1st batten", laf_hint: "Top of last batten to Ridge (30-50mm)",
+            max_step: "Max Rec. Step (mm):", step_hint: "Tip: Tile length - Overlap (e.g. 420-70=350)", 
+            batten_width: "Batten Width (mm):", spacer_hint: "For spacer block calc",
+            roof_hook: "Tape Hook Position:", hook_bottom: "Bottom (Eaves) -> Pull Up", hook_top: "Top (Ridge) -> Pull Down",
+            calc_roof_btn: "Calculate Battens", roof_info_title: "Common Spacings (Norway)",
+            roof_res_count: "Total Rows:", roof_res_step: "Exact Step:", roof_res_spacer: "Spacer Block:",
+            roof_eff_len: "Calc. Length (LAT-LAF):",
+            batten_pos: "Batten", pos_eaves: "Eaves (Start)", pos_ridge: "Ridge (End)",
+            std_clay: "<b>Clay Tiles:</b> 330–370 mm", std_concrete: "<b>Concrete Tiles:</b> 320–375 mm",
+            std_metal: "<b>Metal Tile:</b> ~350 mm", std_slate: "<b>Slate (30x30):</b> 145–160 mm",
+            note_title: "Important:", roof_cant_note: "The first batten at eaves must be higher (or on edge) to compensate for tile angle.",
+            
+            roof_pitch: "Roof Pitch (Angle):", pitch_low: "< 22° (Low)", pitch_med: "22° - 27° (Standard)", pitch_high: "> 27° (Steep)",
+            pitch_rule_text: "Note: Lower pitch = reduce step (more overlap). Higher pitch = allow larger step. Always check manufacturer.",
+            gutter_rule_title: "Gutter Rule (1/3):", 
+            gutter_rule_text: "Adjust LAT so the first tile hangs ~1/3 into the gutter width. Ensure water drips into the channel.",
+            legend_lat: "LAT (Lekteavstand Takfot (Distance from Eaves edge to Top of 1st batten)",
+            legend_laf: "LAF (Lekteavstand Møne (Distance from Top of last batten to Ridge center)",
+
+            // Stairs
+            stair_calc_title: "Straight Stair Calculator", stair_height: "Total Height (H) mm:",
+            stair_run: "Total Run (L) mm (Optional):", stair_run_hint: "Leave empty to calculate optimal length",
+            desired_rise: "Desired Step Height (h) mm:", calc_stair_btn: "Calculate Stairs",
+            stair_info_title: "Practical Rules (TEK17)",
+            stair_quick_title: "Quick On-Site Method:",
+            stair_quick_1: "Measure Total Height (H).", stair_quick_2: "Divide by ~150-160mm (Outdoor) or 170 (Indoor). Round.",
+            stair_quick_3: "Calc Exact Rise = H / Steps.", stair_quick_4: "Calc Depth = 630 - 2*Rise.",
+            stair_formula: "<b>Blondel Formula:</b> 2 x Rise + Run = 620 - 640 mm",
+            stair_blondel_expl: "Comfort rule based on average human stride (~63cm).",
+            stair_std_priv: "<b>Private (Indoor):</b> h≤180mm, d≥250mm",
+            stair_std_out: "<b>Outdoor (Terrace):</b> h=130-160mm, d=280-320mm",
+            stair_std_rail: "<b>Handrail:</b> Stairs=900mm, Terrace≥1000mm",
+            res_total_h: "Total Height:", res_total_l: "Total Length (Projection):",
+            res_steps: "Number of Steps:", res_rise: "Rise (h):", res_run: "Run/Depth (d):",
+            res_angle: "Angle:", res_total_run: "Total Run:", res_blondel: "Comfort (2h+d):",
+            res_stringer: "Stringer Length:", res_cut_top: "Top Cut:", res_cut_bot: "Bottom Cut:",
+            comfort_ok: "Perfect", comfort_acceptable: "Acceptable", comfort_bad: "Not Recommended",
+            table_title: "Standard Terrace Stairs", table_h: "Height (mm)", table_steps: "Steps",
+
+            // Areas
+            area_pythagoras_title: "90° Angle Check (Pythagoras)", area_side_a: "Side A (mm):", area_side_b: "Side B (mm):",
+            calc_diag_btn: "Calculate Diagonal", res_diag: "Diagonal (Hypotenuse):",
+            diag_check_title: "Frame Square Check", diag_1: "Diagonal 1 (mm):", diag_2: "Diagonal 2 (mm):", 
+            check_btn: "Check Squareness", res_sq_ok: "Perfect! Frame is Square.", res_sq_bad: "Not Square! Adjust frame.",
+            
+            area_calc_title: "Surface Area Calculator", area_shape: "Shape:", 
+            shape_rect: "Rectangle (Floor/Wall)", shape_tri: "Triangle (Gable)", shape_roof: "Roof Slope Area",
+            area_width: "Width / Base (m):", area_len: "Length / Height (m):", roof_pitch_deg: "Roof Pitch (°):",
+            calc_area_btn: "Calculate Area", res_area: "Total Area:",
+            
+            mat_calc_title: "Material Estimator", mat_type: "Material Type:", 
+            mat_custom: "Custom", mat_decking: "Decking Boards", mat_drywall: "Drywall (1.2x2.4m)", 
+            mat_tiles_c: "Roof Tiles (Concrete)", mat_tiles_cl: "Roof Tiles (Clay)",
+            mat_total_area: "Total Area (m²):", mat_width: "Mat. Width (mm):", mat_gap: "Gap (mm):",
+            mat_waste: "Waste (%):", calc_mat_btn: "Calculate Material", res_total_qty: "Total Quantity:", res_total_lm: "Total Linear Meters:",
+            mat_tips_title: "Quick Waste Rules:"
+        },
+        no: {
+            menu_framing: "Reisverk", menu_roof: "Tak", menu_areas: "Areal", menu_stairs: "Trapper",
+            stud_spacing_title: "1. Stenderinndeling (c/c)", wall_length: "Vegglengde (mm):", spacing: "Senteravstand:",
+            stud_thick: "Stendertykkelse (mm):", start_point: "Målebånd start:", start_edge: "Ytterkant", 
+            start_inner: "Innerhjørne", start_center: "Midten av vegg", inner_wall_thick: "Tilstøtende vegg (mm):",
+            tape_hook: "Målebånd kile:", hook_left: "Venstre side", hook_right: "Høyre side",
+            opt_gap_label: "Smart slutt (unngå < 15cm avstand)", calc_spacing_btn: "Beregn",
+            edge_mark: "Merke", center_mark: "Senter", opt_badge: "Optimalisert", warn_badge: "Konflikt",
+            instr_left: "Kile på VENSTRE. Plasser X til HØYRE ➡️",
+            instr_right: "Kile på HØYRE. Plasser X til VENSTRE ⬅️",
+            stud_height_title: "2. Stenderhøyde", total_wall_height: "Total vegghøyde (mm):",
+            bottom_svill_thick: "Bunnsvill (mm):", bottom_svill_count: "Antall:",
+            top_svill_thick: "Toppsvill (mm):", top_svill_count: "Antall:", calc_button: "Beregn høyde",
+            result_height: "Kapplengde:", placeholder_text: "Kommer snart...", positions_result: "Plasseringer:",
+            pos_start: "Start", pos_end: "Slutt", pos_grid: "Grid", pos_opt: "Opt.",
+            
+            // Roof
+            roof_batten_title: "Lekteavstand (Tak)", roof_len: "Total taklengde (Raft til Møne):", 
+            dist_lat: "Avst. fra raft (LAT):", dist_laf: "Avst. fra møne (LAF):", 
+            lat_hint: "Kant til Topp av 1. lekte", laf_hint: "Topp av siste lekte til Møne (30-50mm)",
+            max_step: "Maks anbefalt steg (mm):", step_hint: "Tips: Steinlengde - Overlegg", 
+            batten_width: "Lektbredde (mm):", spacer_hint: "For beregning av avstandskloss",
+            roof_hook: "Målebånd kile:", hook_bottom: "Bunn (Raft) -> Dra opp", hook_top: "Topp (Møne) -> Dra ned",
+            calc_roof_btn: "Beregn lekter", roof_info_title: "Vanlige avstander (Norge)",
+            roof_res_count: "Antall rader:", roof_res_step: "Eksakt steg:", roof_res_spacer: "Avstandskloss:",
+            roof_eff_len: "Beregnet lengde (LAT-LAF):",
+            batten_pos: "Lekte", pos_eaves: "Raft (Start)", pos_ridge: "Møne (Slutt)",
+            std_clay: "<b>Teglstein:</b> 330–370 mm", std_concrete: "<b>Betongstein:</b> 320–375 mm",
+            std_metal: "<b>Takpanne (Metal):</b> ~350 mm", std_slate: "<b>Skifer (30x30):</b> 145–160 mm",
+            note_title: "Viktig:", roof_cant_note: "Takfotslekten må være høyere (eller på høykant) for å kompensere for taksteinens vinkel.",
+            
+            roof_pitch: "Takvinkel:", pitch_low: "< 22° (Lav)", pitch_med: "22° - 27° (Standard)", pitch_high: "> 27° (Bratt)",
+            pitch_rule_text: "Merk: Lavere vinkel = mindre steg (mer overlapp). Brattere = større steg. Sjekk produsent.",
+            gutter_rule_title: "Takrenneregel (1/3):", 
+            gutter_rule_text: "Juster LAT slik at første takstein stikker ca 1/3 ut i takrennen. Vannet må dryppe i rennen.",
+            legend_lat: "LAT (Lekteavstand Takfot - Avstand fra raftkant til topp av 1. lekte)",
+            legend_laf: "LAF (Lekteavstand Møne - Avstand fra topp av siste lekte til møne)",
+
+            // Stairs
+            stair_calc_title: "Trappekalkulator (Rett løp)", stair_height: "Total høyde (H) mm:",
+            stair_run: "Total lengde (L) mm (Valgfri):", stair_run_hint: "La stå tom for optimal lengde",
+            desired_rise: "Ønsket opptrinn (h) mm:", calc_stair_btn: "Beregn trapp",
+            stair_info_title: "Praktiske Regler (TEK17)",
+            stair_quick_title: "Rask metode på byggeplass:",
+            stair_quick_1: "Mål total høyde (H).", stair_quick_2: "Del på ~150-160mm (Ute) eller 170 (Inne). Rund av.",
+            stair_quick_3: "Beregn Opptrinn = H / Antall.", stair_quick_4: "Beregn Inntrinn = 630 - 2*Opptrinn.",
+            stair_formula: "<b>Blondels formel:</b> 2 x Opptrinn + Inntrinn = 620 - 640 mm",
+            stair_blondel_expl: "Komfortregel basert på gjennomsnittlig skrittlengde (~63cm).",
+            stair_std_priv: "<b>Inne (Privat):</b> h≤180mm, d≥250mm",
+            stair_std_out: "<b>Ute (Terrasse):</b> h=130-160mm, d=280-320mm",
+            stair_std_rail: "<b>Rekkverk:</b> Trapp=900mm, Terrasse≥1000mm",
+            res_total_h: "Total høyde:", res_total_l: "Total lengde (Prosjektering):",
+            res_steps: "Antall trinn:", res_rise: "Opptrinn (h):", res_run: "Inntrinn (d):",
+            res_angle: "Vinkel:", res_total_run: "Total lengde:", res_blondel: "Komfort (2h+d):",
+            res_stringer: "Vange lengde:", res_cut_top: "Kapp vinkel topp:", res_cut_bot: "Kapp vinkel bunn:",
+            comfort_ok: "Perfekt", comfort_acceptable: "Akseptabel", comfort_bad: "Anbefales ikke",
+            table_title: "Standard Terrassetrapper", table_h: "Høyde (mm)", table_steps: "Trinn",
+
+            // Areas
+            area_pythagoras_title: "90° Vinkel (Pytagoras)", area_side_a: "Side A (mm):", area_side_b: "Side B (mm):",
+            calc_diag_btn: "Beregn Diagonal", res_diag: "Diagonal (Hypotenus):",
+            diag_check_title: "Sjekk Vinkel (Kryssmål)", diag_1: "Diagonal 1 (mm):", diag_2: "Diagonal 2 (mm):", 
+            check_btn: "Sjekk Vinkel", res_sq_ok: "Perfekt! Konstruksjonen er i vinkel.", res_sq_bad: "Ikke i vinkel! Juster rammen.",
+            
+            area_calc_title: "Areal Kalkulator", area_shape: "Form:", 
+            shape_rect: "Rektangel (Gulv/Vegg)", shape_tri: "Trekant (Gavl)", shape_roof: "Takflate (Skråtak)",
+            area_width: "Bredde / Grunnlinje (m):", area_len: "Lengde / Høyde (m):", roof_pitch_deg: "Takvinkel (°):",
+            calc_area_btn: "Beregn Areal", res_area: "Totalt Areal:",
+            
+            mat_calc_title: "Materialmengde", mat_type: "Materialtype:", 
+            mat_custom: "Egendefinert", mat_decking: "Terrassebord", mat_drywall: "Gipsplater (1.2x2.4m)", 
+            mat_tiles_c: "Takstein (Betong)", mat_tiles_cl: "Takstein (Tegl)",
+            mat_total_area: "Totalt Areal (m²):", mat_width: "Mat. Bredde (mm):", mat_gap: "Avstand (mm):",
+            mat_waste: "Kapp (%):", calc_mat_btn: "Beregn Materialer", res_total_qty: "Totalt Antall:", res_total_lm: "Totalt Løpemeter:",
+            mat_tips_title: "Raske kapp-regler:"
+        },
+        pl: {
+            menu_framing: "Konstrukcje", menu_roof: "Dach", menu_areas: "Powierzchnie", menu_stairs: "Schody",
+            stud_spacing_title: "1. Rozstaw słupków (c/c)", wall_length: "Długość ściany (mm):", spacing: "Rozstaw c/c:",
+            stud_thick: "Grubość słupka (mm):", start_point: "Punkt zero:", start_edge: "Krawędź zewn.", 
+            start_inner: "Narożnik wewn.", start_center: "Środek ściany", inner_wall_thick: "Ściana poprzeczna (mm):",
+            tape_hook: "Zaczep miary:", hook_left: "Z lewej strony", hook_right: "Z prawej strony",
+            opt_gap_label: "Inteligentny koniec (unikaj < 15cm)", calc_spacing_btn: "Oblicz rozstaw",
+            edge_mark: "Kreska", center_mark: "Środek", opt_badge: "Zoptymalizowano", warn_badge: "Konflikt",
+            instr_left: "Zaczep po LEWEJ. Znak X po PRAWEJ ➡️ od kreski.",
+            instr_right: "Zaczep po PRAWEJ. Znak X po LEWEJ ⬅️ od kreski.",
+            stud_height_title: "2. Wysokość słupka", total_wall_height: "Wysokość całkowita (mm):",
+            bottom_svill_thick: "Podwalina (mm):", bottom_svill_count: "Ilość:",
+            top_svill_thick: "Oczep (mm):", top_svill_count: "Ilość:", calc_button: "Oblicz wysokość",
+            result_height: "Długość cięcia:", placeholder_text: "Wkrótce...", positions_result: "Pozycje znakowania:",
+            pos_start: "Start", pos_end: "Koniec", pos_grid: "Grid", pos_opt: "Opt.",
+            
+            // Roof
+            roof_batten_title: "Rozstaw łat dachowych", roof_len: "Całk. długość krokwi (Okap-Kalenica):", 
+            dist_lat: "Odl. od okapu (LAT):", dist_laf: "Odl. od kalenicy (LAF):", 
+            lat_hint: "Krawędź do Góry 1. łaty", laf_hint: "Góra ost. łaty do Kalenicy (30-50mm)",
+            max_step: "Max zalecany rozstaw:", step_hint: "Tip: Długość dachówki - Zakład", 
+            batten_width: "Szerokość łaty (mm):", spacer_hint: "Do obliczenia klocka",
+            roof_hook: "Zaczep miary:", hook_bottom: "Dół (Okap) -> W górę", hook_top: "Góra (Kalenica) -> W dół",
+            calc_roof_btn: "Oblicz łaty", roof_info_title: "Typowe wymiary (Norwegia)",
+            roof_res_count: "Ilość rzędów:", roof_res_step: "Dokładny rozstaw:", roof_res_spacer: "Klocek dystansowy:",
+            roof_eff_len: "Długość obliczeniowa (LAT-LAF):",
+            batten_pos: "Łata", pos_eaves: "Okap (Start)", pos_ridge: "Kalenica (Koniec)",
+            std_clay: "<b>Dachówka ceramiczna:</b> 330–370 mm", std_concrete: "<b>Dachówka betonowa:</b> 320–375 mm",
+            std_metal: "<b>Blachodachówka:</b> ~350 mm", std_slate: "<b>Łupek (30x30):</b> 145–160 mm",
+            note_title: "Ważne:", roof_cant_note: "Pierwsza łata przy okapie musi być wyższa (lub na sztorc), aby wyrównać kąt dachówki.",
+            
+            roof_pitch: "Kąt dachu:", pitch_low: "< 22° (Mały)", pitch_med: "22° - 27° (Standard)", pitch_high: "> 27° (Duży)",
+            pitch_rule_text: "Uwaga: Mniejszy kąt = mniejszy rozstaw (większy zakład). Większy kąt = większy rozstaw.",
+            gutter_rule_title: "Zasada rynny (1/3):", 
+            gutter_rule_text: "Dostosuj LAT tak, aby pierwsza dachówka wystawała na ~1/3 szerokości rynny. Woda musi kapać do rynny.",
+            legend_lat: "LAT (Odległość od krawędzi okapu do góry 1. łaty)",
+            legend_laf: "LAF (Odległość od góry ostatniej łaty do kalenicy)",
+
+            // Stairs
+            stair_calc_title: "Kalkulator Schodów Prostych", stair_height: "Wysokość całkowita (H) mm:",
+            stair_run: "Długość całkowita (L) mm (Opcjonalnie):", stair_run_hint: "Zostaw puste dla optymalnej długości",
+            desired_rise: "Pożądana wys. stopnia (h) mm:", calc_stair_btn: "Oblicz Schody",
+            stair_info_title: "Zasady Praktyczne (TEK17)",
+            stair_quick_title: "Szybka metoda na budowie:",
+            stair_quick_1: "Zmierz Wysokość (H).", stair_quick_2: "Podziel przez ~150-160mm (Zewn) lub 170 (Wewn). Zaokrąglij.",
+            stair_quick_3: "Oblicz Dokładny Wznios = H / Ilość.", stair_quick_4: "Oblicz Głębokość = 630 - 2*Wznios.",
+            stair_formula: "<b>Wzór Blondela:</b> 2 x Wznios + Głębokość = 620 - 640 mm",
+            stair_blondel_expl: "Zasada komfortu oparta na długości kroku człowieka (~63cm).",
+            stair_std_priv: "<b>Wewnętrzne:</b> h≤180mm, d≥250mm",
+            stair_std_out: "<b>Zewnętrzne (Taras):</b> h=130-160mm, d=280-320mm",
+            stair_std_rail: "<b>Poręcz:</b> Schody=900mm, Taras≥1000mm",
+            res_total_h: "Wysokość całk.:", res_total_l: "Długość całk. (Rzut):",
+            res_steps: "Liczba stopni:", res_rise: "Wysokość (h):", res_run: "Głębokość (d):",
+            res_angle: "Kąt:", res_total_run: "Długość całk.:", res_blondel: "Komfort (2h+d):",
+            res_stringer: "Długość policzka:", res_cut_top: "Kąt cięcia góra:", res_cut_bot: "Kąt cięcia dół:",
+            comfort_ok: "Idealne", comfort_acceptable: "Akceptowalne", comfort_bad: "Niezalecane",
+            table_title: "Standardowe Schody Tarasowe", table_h: "Wysokość (mm)", table_steps: "Stopnie",
+
+            // Areas
+            area_pythagoras_title: "Kąt 90° (Pitagoras)", area_side_a: "Bok A (mm):", area_side_b: "Bok B (mm):",
+            calc_diag_btn: "Oblicz Przekątną", res_diag: "Przekątna (Przeciwprostokątna):",
+            diag_check_title: "Sprawdzenie Kąta (Krzyż)", diag_1: "Przekątna 1 (mm):", diag_2: "Przekątna 2 (mm):", 
+            check_btn: "Sprawdź Kąt", res_sq_ok: "Idealnie! Rama ma kąt prosty.", res_sq_bad: "Brak kąta! Popraw ramę.",
+            
+            area_calc_title: "Kalkulator Powierzchni", area_shape: "Kształt:", 
+            shape_rect: "Prostokąt (Podłoga/Ściana)", shape_tri: "Trójkąt (Szczyt)", shape_roof: "Powierzchnia Dachu (Skos)",
+            area_width: "Szerokość / Podstawa (m):", area_len: "Długość / Wysokość (m):", roof_pitch_deg: "Kąt Dachu (°):",
+            calc_area_btn: "Oblicz Powierzchnię", res_area: "Całkowita Powierzchnia:",
+            
+            mat_calc_title: "Szacowanie Materiału", mat_type: "Rodzaj Materiału:", 
+            mat_custom: "Własny", mat_decking: "Deski Tarasowe", mat_drywall: "Płyty G-K (1.2x2.4m)", 
+            mat_tiles_c: "Dachówka (Beton)", mat_tiles_cl: "Dachówka (Ceramika)",
+            mat_total_area: "Całkowita Powierzchnia (m²):", mat_width: "Szer. Materiału (mm):", mat_gap: "Szczelina (mm):",
+            mat_waste: "Odpad (%):", calc_mat_btn: "Oblicz Materiał", res_total_qty: "Całkowita Ilość:", res_total_lm: "Metry Bieżące:",
+            mat_tips_title: "Szybkie zasady odpadów:"
+        },
+        lt: {
+            menu_framing: "Karkasas", menu_roof: "Stogas", menu_areas: "Plotai / Kampai", menu_stairs: "Laiptai",
+            stud_spacing_title: "1. Stenderių išdėstymas (c/c)", wall_length: "Sienos ilgis (mm):", spacing: "Žingsnis c/c:",
+            stud_thick: "Stenderio storis (mm):", start_point: "Ruletės nulis:", start_edge: "Išorinis kraštas", 
+            start_inner: "Vidinis kampas", start_center: "Sienos vidurys", inner_wall_thick: "Susikertanti siena (mm):",
+            tape_hook: "Ruletės kablys:", hook_left: "Kairėje (traukiama į dešinę)", hook_right: "Dešinėje (traukiama į kairę)",
+            opt_gap_label: "Išmanioji pabaiga (vengti tarpų < 15cm)", calc_spacing_btn: "Skaičiuoti išdėstymą",
+            edge_mark: "Žyma", center_mark: "Centras", opt_badge: "Optimizuota", warn_badge: "Konfliktas",
+            instr_left: "Kablys KAIRĖJE. Žymime brūkšnį, X dedame į DEŠINĘ ➡️",
+            instr_right: "Kablys DEŠINĖJE. Žymime brūkšnį, X dedame į KAIRĘ ⬅️",
+            stud_height_title: "2. Stenderio aukščio skaičiuoklė", total_wall_height: "Bendras sienos aukštis (mm):",
+            bottom_svill_thick: "Apatinis tašas (mm):", bottom_svill_count: "Kiekis:",
+            top_svill_thick: "Viršutinis tašas (mm):", top_svill_count: "Kiekis:", calc_button: "Skaičiuoti aukštį",
+            result_height: "Pjovimo ilgis:", placeholder_text: "Netrukus bus užpildyta...", positions_result: "Žymėjimo vietos:",
+            pos_start: "Pradžia", pos_end: "Pabaiga", pos_grid: "Tinklelis", pos_opt: "Opt.",
+            
+            // Roof
+            roof_batten_title: "Grebėstų žingsnis", roof_len: "Gegnės ilgis (Nuo karnizo iki kraigo):", 
+            dist_lat: "Nuo karnizo (LAT):", dist_laf: "Nuo kraigo (LAF):", 
+            lat_hint: "Nuo krašto iki 1-o grebėsto viršaus", laf_hint: "Nuo paskutinio viršaus iki kraigo (30-50mm)",
+            max_step: "Max rekomenduojamas:", step_hint: "Patarimas: Čerpė - Užlaida", 
+            batten_width: "Grebėsto plotis (mm):", spacer_hint: "Tarpinės kaladėlės skaičiavimui",
+            roof_hook: "Ruletės kablys:", hook_bottom: "Apačioje (Karnize)", hook_top: "Viršuje (Kraige)",
+            calc_roof_btn: "Skaičiuoti grebėstus", roof_info_title: "Standartiniai matmenys (Norvegija)",
+            roof_res_count: "Iš viso eilių:", roof_res_step: "Tikslus žingsnis:", roof_res_spacer: "Tarpinė kaladėlė:",
+            roof_eff_len: "Skaičiuojamas ilgis (LAT-LAF):",
+            batten_pos: "Grebėstas", pos_eaves: "Karnizas (Pradžia)", pos_ridge: "Kraigas (Pabaiga)",
+            std_clay: "<b>Molinės čerpės:</b> 330–370 mm", std_concrete: "<b>Betoninės čerpės:</b> 320–375 mm",
+            std_metal: "<b>Skardinė čerpė:</b> ~350 mm", std_slate: "<b>Skalūnas (30x30):</b> 145–160 mm",
+            note_title: "Svarbu:", roof_cant_note: "Pirmas grebėstas karnize turi būti aukštesnis (arba paverstas), kad išlygintų čerpės kampą.",
+            
+            roof_pitch: "Stogo kampas:", pitch_low: "< 22° (Mažas)", pitch_med: "22° - 27° (Standartas)", pitch_high: "> 27° (Didelis)",
+            pitch_rule_text: "Pastaba: Mažesnis kampas = mažesnis žingsnis (didesnė užlaida). Didesnis = galima didinti. Žiūrėti gamintojo inf.",
+            gutter_rule_title: "Latako taisyklė (1/3):", 
+            gutter_rule_text: "Nustatykite LAT taip, kad pirma čerpė išsikištų ~1/3 į latako plotį. Vanduo turi lašėti į vidų.",
+            legend_lat: "LAT (Lekteavstand Takfot - Atstumas nuo karnizo iki 1 grebėsto viršaus)",
+            legend_laf: "LAF (Lekteavstand Møne - Atstumas nuo paskutinio grebėsto viršaus iki kraigo)",
+
+            // Stairs
+            stair_calc_title: "Laiptų skaičiuoklė (Tiesūs)", stair_height: "Bendras aukštis (H) mm:",
+            stair_run: "Bendras ilgis (L) mm (Nebūtina):", stair_run_hint: "Palikti tuščią optimaliam ilgiui",
+            desired_rise: "Norimas pakopos aukštis (h) mm:", calc_stair_btn: "Skaičiuoti laiptus",
+            stair_info_title: "Praktinės taisyklės (TEK17)",
+            stair_quick_title: "Greitas metodas objekte:",
+            stair_quick_1: "Išmatuok aukštį (H).", stair_quick_2: "Dalink iš ~150-160mm (lauke) arba 170 (viduje). Suapvalink.",
+            stair_quick_3: "Tikslus aukštis = H / Kiekio.", stair_quick_4: "Gylis = 630 - 2*Aukštis.",
+            stair_formula: "<b>Blondelio formulė:</b> 2 x Aukštis + Gylis = 620 - 640 mm",
+            stair_blondel_expl: "Komforto taisyklė, paremta žmogaus žingsnio ilgiu (~63cm).",
+            stair_std_priv: "<b>Vidaus:</b> h≤180mm, d≥250mm",
+            stair_std_out: "<b>Lauko (Terasos):</b> h=130-160mm, d=280-320mm",
+            stair_std_rail: "<b>Turėklai:</b> Laiptų=900mm, Terasos≥1000mm",
+            res_total_h: "Bendras aukštis:", res_total_l: "Bendras ilgis (Projekcija):",
+            res_steps: "Pakopų skaičius:", res_rise: "Aukštis (h):", res_run: "Gylis (d):",
+            res_angle: "Kampas:", res_total_run: "Bendras ilgis:", res_blondel: "Komfortas (2h+d):",
+            res_stringer: "Sijos ilgis:", res_cut_top: "Pjovimas viršuje:", res_cut_bot: "Pjovimas apačioje:",
+            comfort_ok: "Idealu", comfort_acceptable: "Priimtina", comfort_bad: "Nerekomenduojama",
+            table_title: "Standartiniai Terasos Laiptai", table_h: "Aukštis (mm)", table_steps: "Pakopos",
+
+            // Areas
+            area_pythagoras_title: "90° Kampo radimas (Pitagoras)", area_side_a: "Kraštinė A (mm):", area_side_b: "Kraštinė B (mm):",
+            calc_diag_btn: "Skaičiuoti Įstrižainę", res_diag: "Įstrižainė (Hipotenuzė):",
+            diag_check_title: "Karkaso Kampų Tikrinimas", diag_1: "Įstrižainė 1 (mm):", diag_2: "Įstrižainė 2 (mm):", 
+            check_btn: "Tikrinti Kampą", res_sq_ok: "Idealu! Karkasas lygus.", res_sq_bad: "Nelygu! Koreguokite rėmą.",
+            
+            area_calc_title: "Ploto Skaičiuoklė", area_shape: "Forma:", 
+            shape_rect: "Stačiakampis (Grindys/Siena)", shape_tri: "Trikampis (Grybas)", shape_roof: "Stogo Šlaitas",
+            area_width: "Plotis / Pagrindas (m):", area_len: "Ilgis / Aukštis (m):", roof_pitch_deg: "Stogo kampas (°):",
+            calc_area_btn: "Skaičiuoti Plotą", res_area: "Bendras Plotas:",
+            
+            mat_calc_title: "Medžiagų Kiekis", mat_type: "Medžiagos Tipas:", 
+            mat_custom: "Pasirinkti", mat_decking: "Terasos Lentos", mat_drywall: "Gipsas (1.2x2.4m)", 
+            mat_tiles_c: "Čerpės (Betonas)", mat_tiles_cl: "Čerpės (Keramika)",
+            mat_total_area: "Bendras Plotas (m²):", mat_width: "Medž. Plotis (mm):", mat_gap: "Tarpas (mm):",
+            mat_waste: "Atsarga (%):", calc_mat_btn: "Skaičiuoti Medžiagas", res_total_qty: "Viso Vienetų:", res_total_lm: "Viso bėginių metrų:",
+            mat_tips_title: "Atsargos taisyklės:"
+        }
+    };
+
+    function openTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        event.currentTarget.classList.add('active');
+    }
+
+    function changeLanguage() {
+        let lang = document.getElementById('lang-select').value;
+        document.documentElement.lang = lang;
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            let key = el.getAttribute('data-i18n');
+            if (translations[lang][key]) {
+                if(key.startsWith('std_') || key.startsWith('stair_std_') || key === 'stair_formula') {
+                    el.innerHTML = translations[lang][key];
+                } else {
+                    el.innerText = translations[lang][key];
+                }
+            }
+        });
+        
+        // Update selects
+        ["startMode", "tapeHook", "spacingCc", "roofHook", "roofPitch", "areaShape", "matType"].forEach(id => {
+            let select = document.getElementById(id);
+            if(select) {
+                for(let opt of select.options) {
+                    let i18n = opt.getAttribute('data-i18n');
+                    if(i18n && translations[lang][i18n]) opt.innerText = translations[lang][i18n];
+                }
+            }
+        });
+        
+        // Re-calculate if results are visible
+        if(document.getElementById('spacingResult').style.display === 'block') calcSpacing();
+        if(document.getElementById('studResult').style.display === 'block') calcStudHeight();
+        if(document.getElementById('roofResult').style.display === 'block') calcRoof();
+        if(document.getElementById('stairResult').style.display === 'block') calcStairs();
+        updateRoofHints();
+    }
+    
+    function updateRoofHints() {
+        let pitch = document.getElementById('roofPitch').value;
+        let hintEl = document.getElementById('maxStepHint');
+        let ranges = {
+            'low': "Recommended: ~310-330 mm",
+            'med': "Recommended: ~330-350 mm",
+            'high': "Recommended: ~350-375 mm"
+        };
+        // Simple text update based on pitch
+        if(hintEl) {
+            hintEl.innerText = ranges[pitch];
+        }
+    }
+
+    function toggleInnerWallInput() {
+        document.getElementById('innerWallGroup').style.display = 
+            (document.getElementById('startMode').value === 'inner') ? 'block' : 'none';
+    }
+    
+    function toggleShapeInputs() {
+        let shape = document.getElementById('areaShape').value;
+        let pitchGroup = document.getElementById('roofPitchGroup');
+        let lblW = document.getElementById('lblW');
+        let lblL = document.getElementById('lblL');
+        
+        if (shape === 'roof') {
+            pitchGroup.style.display = 'block';
+            lblW.setAttribute('data-i18n', 'area_width'); // Will update on calc
+            lblW.innerText = "House Width (Gable) (m):";
+            lblL.innerText = "House Length (m):";
+        } else {
+            pitchGroup.style.display = 'none';
+            lblW.innerText = "Width / Base (m):";
+            lblL.innerText = "Length / Height (m):";
+        }
+    }
+    
+    function updateMatDefaults() {
+        let type = document.getElementById('matType').value;
+        // Defaults
+        if(type === 'decking') {
+            document.getElementById('matW').value = 120;
+            document.getElementById('matGap').value = 5;
+            document.getElementById('matWaste').value = 10;
+            document.getElementById('matDims').style.display = 'block';
+        }
+        else if(type === 'drywall') {
+            document.getElementById('matWaste').value = 10;
+            document.getElementById('matDims').style.display = 'none';
+        }
+        else if(type.startsWith('tiles')) {
+            document.getElementById('matWaste').value = 5; // 5-8%
+            document.getElementById('matDims').style.display = 'none';
+        }
+        else {
+            document.getElementById('matDims').style.display = 'block';
+        }
+    }
+
+    function calcStudHeight() {
+        let total = parseFloat(document.getElementById('totalHeight').value);
+        let bT = parseFloat(document.getElementById('botSvillThick').value) || 0;
+        let bC = parseFloat(document.getElementById('botSvillCount').value) || 0;
+        let tT = parseFloat(document.getElementById('topSvillThick').value) || 0;
+        let tC = parseFloat(document.getElementById('topSvillCount').value) || 0;
+        let lang = document.getElementById('lang-select').value;
+        let resBox = document.getElementById('studResult');
+        
+        if(!total) return;
+        
+        let res = total - (bT * bC + tT * tC);
+        resBox.style.display = "block";
+        resBox.innerHTML = `${translations[lang].result_height} <span class="big-result">${res} mm</span>`;
+    }
+
+    function calcSpacing() {
+        let L = parseFloat(document.getElementById('wallLen').value);
+        let T = parseFloat(document.getElementById('studT').value);
+        let S = parseFloat(document.getElementById('spacingCc').value);
+        let mode = document.getElementById('startMode').value;
+        let hook = document.getElementById('tapeHook').value;
+        let innerT = (mode === 'inner') ? parseFloat(document.getElementById('innerWallT').value) || 0 : 0;
+        let opt = document.getElementById('optimizeGap').checked;
+        let lang = document.getElementById('lang-select').value;
+        
+        if(!L || !T || !S) return;
+
+        let pts = [];
+        function addP(center, type, note='') { pts.push({c: center, type: type, note: note}); }
+
+        // 1. Grid
+        if(mode === 'edge') {
+            addP(T/2, 'start');
+            for(let x=S; x < L; x+=S) addP(x, 'grid');
+        } 
+        else if(mode === 'inner') {
+            addP(innerT + T/2, 'start');
+            for(let x=S; x < L; x+=S) {
+                let gridStart = x - T/2;
+                let wallStart = innerT + T; 
+                if(gridStart > wallStart) addP(x, 'grid'); 
+            }
+        } 
+        else if(mode === 'center') {
+            let mid = L/2;
+            addP(mid, 'grid', 'Center');
+            for(let x=mid+S; x < L; x+=S) addP(x, 'grid');
+            for(let x=mid-S; x > 0; x-=S) addP(x, 'grid');
+            pts.sort((a,b) => a.c - b.c);
+        }
+
+        // 2. Smart End
+        let endStudCenter = L - T/2;
+        pts.sort((a,b) => a.c - b.c);
+        let lastStud = pts[pts.length-1];
+        let gap = (L - T) - (lastStud.c + T/2);
+
+        if(opt && gap < 150 && gap > -T) { 
+             pts.pop();
+             let prev = pts[pts.length-1];
+             let newCenter = prev.c + (endStudCenter - prev.c) / 2;
+             addP(newCenter, 'opt');
+        } else if (gap < -T/2) {
+             pts.pop();
+        }
+        addP(endStudCenter, 'end');
+        pts.sort((a,b) => a.c - b.c);
+
+        // 3. Render
+        let html = `<div class="info-box"><strong>${hook==='left'?translations[lang].instr_left:translations[lang].instr_right}</strong></div>`;
+        html += `<strong>${translations[lang].positions_result}</strong>`;
+        
+        pts.forEach((p, i) => {
+            let mark = p.c - T/2;
+            let typeLabel = "";
+            let rowClass = "";
+            
+            if(p.type === 'opt') { typeLabel = `<span class="optimized-badge">${translations[lang].pos_opt}</span>`; rowClass="optimized-row"; }
+            if(p.type === 'start') { typeLabel = `(${translations[lang].pos_start})`; }
+            if(p.type === 'end') { typeLabel = `(${translations[lang].pos_end})`; }
+            
+            html += `<div class="list-item ${rowClass}">
+                <span><b>${translations[lang].edge_mark}:</b> <span class="mark-edge">${Math.round(mark)}</span> mm ${typeLabel}</span>
+                <span class="mark-center">C: ${Math.round(p.c)}</span>
+            </div>`;
+        });
+        
+        let rb = document.getElementById('spacingResult');
+        rb.innerHTML = html; rb.style.display = "block";
+    }
+
+    function calcRoof() {
+        let X = parseFloat(document.getElementById('roofLen').value);
+        let LAT = parseFloat(document.getElementById('distLAT').value);
+        let LAF = parseFloat(document.getElementById('distLAF').value);
+        let MaxS = parseFloat(document.getElementById('maxStep').value);
+        let battenW = parseFloat(document.getElementById('battenWidth').value) || 48;
+        let hook = document.getElementById('roofHook').value;
+        let lang = document.getElementById('lang-select').value;
+
+        if(!X || !LAT || !LAF || !MaxS) return;
+
+        let effLen = X - LAT - LAF;
+        if(effLen <= 0) {
+            alert("Error: LAT + LAF is larger than Total Length!");
+            return;
+        }
+
+        let count = Math.ceil(effLen / MaxS);
+        let realStep = effLen / count;
+        let spacerBlock = realStep - battenW;
+        
+        let html = `<div class="info-box">
+            ${translations[lang].roof_res_count} <b>${count}</b><br>
+            ${translations[lang].roof_res_step} <b class="big-result">${realStep.toFixed(1)} mm</b><br>
+            <span style="color:var(--text-muted); font-size:0.9rem;">${translations[lang].roof_res_spacer} <b>${spacerBlock.toFixed(1)} mm</b></span><br>
+            <span style="color:var(--text-muted); font-size:0.8rem;">${translations[lang].roof_eff_len} ${effLen.toFixed(0)} mm</span>
+        </div>`;
+        
+        html += `<strong>${translations[lang].positions_result}</strong>`;
+
+        let positions = [];
+        
+        // Add First (Eaves)
+        positions.push({ m: LAT, label: translations[lang].pos_eaves });
+        
+        // Add Middle
+        for(let i=1; i < count; i++) {
+            positions.push({ m: LAT + (i * realStep), label: `${translations[lang].batten_pos} #${i+1}` });
+        }
+        
+        // Add Last (Ridge) - should match X - LAF
+        let lastPos = X - LAF;
+        positions.push({ m: lastPos, label: translations[lang].pos_ridge });
+
+        // If Hook is Top (Ridge), we need to invert the measurements
+        if(hook === 'top') {
+            positions = positions.map(p => {
+                return { m: X - p.m, label: p.label };
+            });
+            // Sort to show closest to hook first
+            positions.sort((a,b) => a.m - b.m);
+        }
+
+        positions.forEach(p => {
+            html += `<div class="list-item">
+                <span><b>${translations[lang].edge_mark}:</b> <span class="mark-edge">${p.m.toFixed(1)}</span> mm</span>
+                <span class="mark-center">${p.label}</span>
+            </div>`;
+        });
+
+        let rb = document.getElementById('roofResult');
+        rb.innerHTML = html; 
+        rb.style.display = "block";
+    }
+
+    function calcStairs() {
+        let H = parseFloat(document.getElementById('stairH').value);
+        let L = parseFloat(document.getElementById('stairL').value);
+        let hPref = parseFloat(document.getElementById('prefRise').value) || 160;
+        let lang = document.getElementById('lang-select').value;
+
+        if(!H) return;
+
+        // Calculate Steps count
+        let count = Math.round(H / hPref);
+        let rise = H / count;
+        
+        // Calculate Run (d)
+        let runCount = count - 1;
+        let run = 0;
+        
+        if(L > 0) {
+            run = L / runCount;
+        } else {
+            // Optimal run Blondel: 2h + d = 630
+            run = 630 - (2 * rise);
+            L = run * runCount;
+        }
+
+        // Blondel Check
+        let blondel = (2 * rise) + run;
+        let comfortClass = "comfort_ok";
+        let comfortColor = "var(--success)";
+        
+        if (blondel < 600 || blondel > 640) {
+            comfortClass = "comfort_acceptable";
+            comfortColor = "orange";
+        }
+        if (blondel < 580 || blondel > 660) {
+            comfortClass = "comfort_bad";
+            comfortColor = "red";
+        }
+
+        // Angle
+        let angleRad = Math.atan(rise / run);
+        let angleDeg = angleRad * (180 / Math.PI);
+        
+        // Stringer Length (Hypotenuse of TOTAL rise and run)
+        let stringerLen = Math.sqrt(Math.pow(H, 2) + Math.pow(L, 2));
+        
+        // Cut Angles
+        let cutBot = angleDeg;
+        let cutTop = 90 - angleDeg;
+
+        let html = `<div class="info-box" style="border-left-color:${comfortColor}">
+            ${translations[lang].res_total_h} <b>${H.toFixed(0)} mm</b><br>
+            ${translations[lang].res_total_l} <b>${L.toFixed(0)} mm</b><br>
+            <hr style="border:0; border-top:1px solid #ccc; margin:5px 0;">
+            ${translations[lang].res_steps} <b>${count}</b> (${runCount} runs)<br>
+            ${translations[lang].res_rise} <b class="big-result">${rise.toFixed(1)} mm</b>
+            ${translations[lang].res_run} <b>${run.toFixed(1)} mm</b><br>
+            ${translations[lang].res_angle} <b>${angleDeg.toFixed(1)}°</b><br>
+            <br>
+            ${translations[lang].res_stringer} <b>${stringerLen.toFixed(0)} mm</b><br>
+            ${translations[lang].res_cut_top} <b>${cutTop.toFixed(1)}°</b><br>
+            ${translations[lang].res_cut_bot} <b>${cutBot.toFixed(1)}°</b><br>
+            <br>
+            ${translations[lang].res_blondel} <b>${blondel.toFixed(0)} mm</b> - <span style="color:${comfortColor}; font-weight:bold;">${translations[lang][comfortClass]}</span>
+        </div>`;
+
+        let rb = document.getElementById('stairResult');
+        rb.innerHTML = html;
+        rb.style.display = "block";
+    }
+    
+    // NEW FUNCTIONS FOR AREA/ANGLES
+    
+    function calcPythagoras() {
+        let a = parseFloat(document.getElementById('sideA').value);
+        let b = parseFloat(document.getElementById('sideB').value);
+        let lang = document.getElementById('lang-select').value;
+        
+        if(!a || !b) return;
+        
+        let c = Math.sqrt(Math.pow(a, 2) + Math.pow(b, 2));
+        
+        let html = `<div class="info-box">
+            ${translations[lang].res_diag} <b class="big-result">${c.toFixed(1)} mm</b>
+        </div>`;
+        
+        let rb = document.getElementById('pythResult');
+        rb.innerHTML = html;
+        rb.style.display = "block";
+    }
+    
+    function checkSquare() {
+        let d1 = parseFloat(document.getElementById('diag1').value);
+        let d2 = parseFloat(document.getElementById('diag2').value);
+        let lang = document.getElementById('lang-select').value;
+        
+        if(!d1 || !d2) return;
+        
+        let diff = Math.abs(d1 - d2);
+        let isSquare = diff < 2; // Tolerance 2mm
+        let color = isSquare ? "var(--success)" : "#f56565";
+        let msg = isSquare ? translations[lang].res_sq_ok : translations[lang].res_sq_bad;
+        
+        let html = `<div class="info-box" style="border-left-color:${color}">
+            <b style="color:${color}">${msg}</b><br>
+            Diff: ${diff} mm
+        </div>`;
+        
+        let rb = document.getElementById('squareResult');
+        rb.innerHTML = html;
+        rb.style.display = "block";
+    }
+    
+    function calcArea() {
+        let w = parseFloat(document.getElementById('areaW').value);
+        let l = parseFloat(document.getElementById('areaL').value);
+        let shape = document.getElementById('areaShape').value;
+        let lang = document.getElementById('lang-select').value;
+        
+        if(!w || !l) return;
+        
+        let area = 0;
+        if(shape === 'rect') area = w * l;
+        if(shape === 'triangle') area = (w * l) / 2;
+        if(shape === 'roof') {
+            let pitch = parseFloat(document.getElementById('areaPitch').value) || 0;
+            // w is House Width (gable width). l is House Length.
+            // Slope Length = (Width/2) / cos(pitch)
+            // Area = 2 * SlopeLength * Length
+            let slopeLen = (w / 2) / Math.cos(pitch * (Math.PI / 180));
+            area = 2 * slopeLen * l;
+        }
+        
+        let html = `<div class="info-box">
+            ${translations[lang].res_area} <b class="big-result">${area.toFixed(2)} m²</b>
+        </div>`;
+        
+        let rb = document.getElementById('areaResult');
+        rb.innerHTML = html;
+        rb.style.display = "block";
+    }
+    
+    function calcMaterial() {
+        let area = parseFloat(document.getElementById('matArea').value);
+        let type = document.getElementById('matType').value;
+        let waste = parseFloat(document.getElementById('matWaste').value) || 0;
+        let lang = document.getElementById('lang-select').value;
+        
+        if(!area) return;
+        
+        let html = "";
+        
+        if (type === 'decking' || type === 'custom') {
+            let w = parseFloat(document.getElementById('matW').value);
+            let gap = parseFloat(document.getElementById('matGap').value) || 0;
+            
+            let effW = (w + gap) / 1000;
+            let lm = area / effW;
+            let totalLM = lm * (1 + waste/100);
+            
+            html = `<div class="info-box">
+                ${translations[lang].res_total_lm} <b class="big-result">${totalLM.toFixed(1)} m</b>
+                <small style="color:var(--text-muted)">Includes ${waste}% waste</small>
+            </div>`;
+        }
+        else if (type === 'drywall') {
+            // Drywall 1.2 x 2.4 = 2.88m2
+            let panelArea = 2.88;
+            let count = Math.ceil((area / panelArea) * (1 + waste/100));
+            
+            html = `<div class="info-box">
+                ${translations[lang].res_total_qty} <b class="big-result">${count} pcs</b>
+                <small>(1200x2400 mm panels)</small>
+            </div>`;
+        }
+        else if (type.startsWith('tiles')) {
+            // Concrete ~10/m2, Clay ~11-12/m2
+            let perM2 = (type === 'tiles_conc') ? 10 : 11.5;
+            let count = Math.ceil((area * perM2) * (1 + waste/100));
+            
+            html = `<div class="info-box">
+                ${translations[lang].res_total_qty} <b class="big-result">${count} pcs</b>
+                <small>(~${perM2} tiles/m²)</small>
+            </div>`;
+        }
+        
+        let rb = document.getElementById('matResult');
+        rb.innerHTML = html;
+        rb.style.display = "block";
+    }
+    
+    // Initial call to set defaults
+    changeLanguage();
+
+</script>
+</body>
+</html>
