@@ -11,11 +11,37 @@
             --success: #38a169;
         }
         body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 0; }
-        header { background-color: var(--card-bg); padding: 15px 20px; border-bottom: 2px solid var(--primary); display: flex; justify-content: space-between; align-items: center; }
-        h1 { margin: 0; font-size: 1.3rem; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; }
+        
+        /* STICKY HEADER & LOGO */
+        header { 
+            background-color: var(--card-bg); 
+            padding: 10px 20px; 
+            border-bottom: 2px solid var(--primary); 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .logo-container { display: flex; align-items: center; gap: 15px; }
+        .logo-img { height: 40px; width: auto; object-fit: contain; }
+        h1 { margin: 0; font-size: 1.2rem; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; }
+        
         select#lang-select { padding: 8px; border: 1px solid var(--border); border-radius: 5px; background: var(--bg-color); cursor: pointer; }
         
-        .tabs { display: flex; overflow-x: auto; background: var(--card-bg); padding: 0 10px; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+        /* STICKY TABS BELOW HEADER */
+        .tabs { 
+            display: flex; 
+            overflow-x: auto; 
+            background: var(--card-bg); 
+            padding: 0 10px; 
+            border-bottom: 1px solid var(--border); 
+            position: sticky; 
+            top: 62px; /* Height of header approx */
+            z-index: 999; 
+        }
         .tab-btn { padding: 15px 20px; border: none; background: none; font-size: 0.9rem; color: var(--text-muted); cursor: pointer; white-space: nowrap; border-bottom: 3px solid transparent; transition: 0.3s; }
         .tab-btn.active { color: var(--primary); border-bottom: 3px solid var(--primary); font-weight: bold; }
         
@@ -59,7 +85,11 @@
 <body>
 
     <header>
-        <h2>ProBuilder Calc by Vytautas G.</h2>
+        <div class="logo-container">
+            <!-- LOGO ADDED HERE -->
+            <img src="BU_Logo.png" alt="Logo" class="logo-img">
+            <h1>ProBuilder Calc</h1>
+        </div>
         <select id="lang-select" onchange="changeLanguage()">
             <option value="en">English</option>
             <option value="no">Norsk</option>
