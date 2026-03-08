@@ -170,14 +170,27 @@
                 <h3 data-i18n="roof_batten_title">Roof Batten Spacing</h3>
                 
                 <div class="form-group">
-                     <label data-i18n="roof_len">Total Rafter Length (X) mm:</label>
+                     <label data-i18n="roof_len">Total Rafter Length (Eaves to Ridge):</label>
                      <input type="number" id="roofLen" placeholder="6250">
+                </div>
+                
+                <div class="form-group">
+                    <label data-i18n="roof_pitch">Roof Pitch (Angle):</label>
+                    <select id="roofPitch" onchange="updateRoofHints()">
+                        <option value="low" data-i18n="pitch_low">< 22° (Low)</option>
+                        <option value="med" selected data-i18n="pitch_med">22° - 27° (Standard)</option>
+                        <option value="high" data-i18n="pitch_high">> 27° (Steep)</option>
+                    </select>
+                </div>
+
+                <div class="info-box" style="margin: 10px 0; border-left-color:var(--primary); background: #ebf8ff;">
+                     <p style="margin: 0; font-size:0.85rem;" data-i18n="pitch_rule_text">Note: Lower pitch = reduce step (more overlap). Higher pitch = allow larger step. Always check manufacturer.</p>
                 </div>
 
                 <div class="row">
                     <div class="form-group">
                         <label data-i18n="dist_lat">Eaves dist. (LAT) mm:</label>
-                        <input type="number" id="distLAT" placeholder="350" value="350">
+                        <input type="number" id="distLAT" placeholder="370" value="370">
                         <small style="color:var(--text-muted); font-size:0.75rem;" data-i18n="lat_hint">Edge to Top of 1st batten</small>
                     </div>
                     <div class="form-group">
@@ -186,12 +199,18 @@
                         <small style="color:var(--text-muted); font-size:0.75rem;" data-i18n="laf_hint">Top of last batten to Ridge (30-50mm)</small>
                     </div>
                 </div>
+                
+                <div class="info-box" style="margin-top:-5px; border-left-color:var(--success); background: #f0fff4;">
+                     <strong data-i18n="gutter_rule_title">Gutter Rule (1/3):</strong>
+                     <p style="margin: 5px 0 0 0; font-size:0.85rem;" data-i18n="gutter_rule_text">Adjust LAT so the first tile hangs ~1/3 into the gutter width. Ensure water drips into the channel, not over or behind.</p>
+                </div>
 
                 <div class="row">
                     <div class="form-group">
                         <label data-i18n="max_step">Max Recommended Step (mm):</label>
                         <input type="number" id="maxStep" placeholder="350" value="350">
-                        <small style="color:var(--text-muted); display:block; margin-top:5px;" data-i18n="step_hint">Tip: Tile length - Overlap (e.g., 420-70=350)</small>
+                        <small id="maxStepHint" style="color:var(--accent); font-weight:bold; display:block; margin-top:5px;">Recommended: ~340-350 mm</small>
+                        <small style="color:var(--text-muted); display:block; margin-top:2px;" data-i18n="step_hint">Tip: Tile length - Overlap (e.g., 420-70=350)</small>
                     </div>
                     <div class="form-group">
                         <label data-i18n="batten_width">Batten Width (mm):</label>
@@ -226,6 +245,12 @@
                      <strong data-i18n="note_title">Important:</strong>
                      <p style="margin: 5px 0 0 0;" data-i18n="roof_cant_note">The first batten at eaves must be higher (or on edge) to compensate for tile angle.</p>
                  </div>
+                 
+                 <h3 style="margin-top:20px; font-size:1rem; border-bottom:none;">Legend / Abbreviations</h3>
+                 <div style="font-size:0.85rem; color:var(--text-muted);">
+                     <p><b>LAT</b>: <span data-i18n="legend_lat">Lekteavstand Takfot (Distance from Eaves edge to Top of 1st batten)</span></p>
+                     <p><b>LAF</b>: <span data-i18n="legend_laf">Lekteavstand Møne (Distance from Top of last batten to Ridge center)</span></p>
+                 </div>
             </div>
         </div>
         
@@ -252,7 +277,7 @@
             pos_start: "Start Stud", pos_end: "End Stud", pos_grid: "Grid", pos_opt: "Optimized",
             
             // Roof
-            roof_batten_title: "Roof Batten Spacing", roof_len: "Total Rafter Length (X) mm:", 
+            roof_batten_title: "Roof Batten Spacing", roof_len: "Total Rafter Length (Eaves to Ridge):", 
             dist_lat: "Eaves dist. (LAT) mm:", dist_laf: "Ridge dist. (LAF) mm:", 
             lat_hint: "Edge to Top of 1st batten", laf_hint: "Top of last batten to Ridge (30-50mm)",
             max_step: "Max Rec. Step (mm):", step_hint: "Tip: Tile length - Overlap (e.g. 420-70=350)", 
@@ -260,10 +285,18 @@
             roof_hook: "Tape Hook Position:", hook_bottom: "Bottom (Eaves) -> Pull Up", hook_top: "Top (Ridge) -> Pull Down",
             calc_roof_btn: "Calculate Battens", roof_info_title: "Common Spacings (Norway)",
             roof_res_count: "Total Rows:", roof_res_step: "Exact Step:", roof_res_spacer: "Spacer Block:",
+            roof_eff_len: "Calc. Length (LAT-LAF):",
             batten_pos: "Batten", pos_eaves: "Eaves (Start)", pos_ridge: "Ridge (End)",
             std_clay: "<b>Clay Tiles:</b> 330–370 mm", std_concrete: "<b>Concrete Tiles:</b> 320–375 mm",
             std_metal: "<b>Metal Tile:</b> ~350 mm", std_slate: "<b>Slate (30x30):</b> 145–160 mm",
-            note_title: "Important:", roof_cant_note: "The first batten at eaves must be higher (or on edge) to compensate for tile angle."
+            note_title: "Important:", roof_cant_note: "The first batten at eaves must be higher (or on edge) to compensate for tile angle.",
+            
+            roof_pitch: "Roof Pitch (Angle):", pitch_low: "< 22° (Low)", pitch_med: "22° - 27° (Standard)", pitch_high: "> 27° (Steep)",
+            pitch_rule_text: "Note: Lower pitch = reduce step (more overlap). Higher pitch = allow larger step. Always check manufacturer.",
+            gutter_rule_title: "Gutter Rule (1/3):", 
+            gutter_rule_text: "Adjust LAT so the first tile hangs ~1/3 into the gutter width. Ensure water drips into the channel.",
+            legend_lat: "LAT (Lekteavstand Takfot (Distance from Eaves edge to Top of 1st batten)",
+            legend_laf: "LAF (Lekteavstand Møne (Distance from Top of last batten to Ridge center)"
         },
         no: {
             menu_framing: "Reisverk", menu_roof: "Tak", menu_areas: "Areal", menu_stairs: "Trapper",
@@ -282,7 +315,7 @@
             pos_start: "Start", pos_end: "Slutt", pos_grid: "Grid", pos_opt: "Opt.",
             
             // Roof
-            roof_batten_title: "Lekteavstand (Tak)", roof_len: "Total taklengde (mm):", 
+            roof_batten_title: "Lekteavstand (Tak)", roof_len: "Total taklengde (Raft til Møne):", 
             dist_lat: "Avst. fra raft (LAT):", dist_laf: "Avst. fra møne (LAF):", 
             lat_hint: "Kant til Topp av 1. lekte", laf_hint: "Topp av siste lekte til Møne (30-50mm)",
             max_step: "Maks anbefalt steg (mm):", step_hint: "Tips: Steinlengde - Overlegg", 
@@ -290,10 +323,18 @@
             roof_hook: "Målebånd kile:", hook_bottom: "Bunn (Raft) -> Dra opp", hook_top: "Topp (Møne) -> Dra ned",
             calc_roof_btn: "Beregn lekter", roof_info_title: "Vanlige avstander (Norge)",
             roof_res_count: "Antall rader:", roof_res_step: "Eksakt steg:", roof_res_spacer: "Avstandskloss:",
+            roof_eff_len: "Beregnet lengde (LAT-LAF):",
             batten_pos: "Lekte", pos_eaves: "Raft (Start)", pos_ridge: "Møne (Slutt)",
             std_clay: "<b>Teglstein:</b> 330–370 mm", std_concrete: "<b>Betongstein:</b> 320–375 mm",
             std_metal: "<b>Takpanne (Metal):</b> ~350 mm", std_slate: "<b>Skifer (30x30):</b> 145–160 mm",
-            note_title: "Viktig:", roof_cant_note: "Takfotslekten må være høyere (eller på høykant) for å kompensere for taksteinens vinkel."
+            note_title: "Viktig:", roof_cant_note: "Takfotslekten må være høyere (eller på høykant) for å kompensere for taksteinens vinkel.",
+            
+            roof_pitch: "Takvinkel:", pitch_low: "< 22° (Lav)", pitch_med: "22° - 27° (Standard)", pitch_high: "> 27° (Bratt)",
+            pitch_rule_text: "Merk: Lavere vinkel = mindre steg (mer overlapp). Brattere = større steg. Sjekk produsent.",
+            gutter_rule_title: "Takrenneregel (1/3):", 
+            gutter_rule_text: "Juster LAT slik at første takstein stikker ca 1/3 ut i takrennen. Vannet må dryppe i rennen.",
+            legend_lat: "LAT (Lekteavstand Takfot - Avstand fra raftkant til topp av 1. lekte)",
+            legend_laf: "LAF (Lekteavstand Møne - Avstand fra topp av siste lekte til møne)"
         },
         pl: {
             menu_framing: "Konstrukcje", menu_roof: "Dach", menu_areas: "Powierzchnie", menu_stairs: "Schody",
@@ -312,7 +353,7 @@
             pos_start: "Start", pos_end: "Koniec", pos_grid: "Grid", pos_opt: "Opt.",
             
             // Roof
-            roof_batten_title: "Rozstaw łat dachowych", roof_len: "Długość krokwi (mm):", 
+            roof_batten_title: "Rozstaw łat dachowych", roof_len: "Całk. długość krokwi (Okap-Kalenica):", 
             dist_lat: "Odl. od okapu (LAT):", dist_laf: "Odl. od kalenicy (LAF):", 
             lat_hint: "Krawędź do Góry 1. łaty", laf_hint: "Góra ost. łaty do Kalenicy (30-50mm)",
             max_step: "Max zalecany rozstaw:", step_hint: "Tip: Długość dachówki - Zakład", 
@@ -320,10 +361,18 @@
             roof_hook: "Zaczep miary:", hook_bottom: "Dół (Okap) -> W górę", hook_top: "Góra (Kalenica) -> W dół",
             calc_roof_btn: "Oblicz łaty", roof_info_title: "Typowe wymiary (Norwegia)",
             roof_res_count: "Ilość rzędów:", roof_res_step: "Dokładny rozstaw:", roof_res_spacer: "Klocek dystansowy:",
+            roof_eff_len: "Długość obliczeniowa (LAT-LAF):",
             batten_pos: "Łata", pos_eaves: "Okap (Start)", pos_ridge: "Kalenica (Koniec)",
             std_clay: "<b>Dachówka ceramiczna:</b> 330–370 mm", std_concrete: "<b>Dachówka betonowa:</b> 320–375 mm",
             std_metal: "<b>Blachodachówka:</b> ~350 mm", std_slate: "<b>Łupek (30x30):</b> 145–160 mm",
-            note_title: "Ważne:", roof_cant_note: "Pierwsza łata przy okapie musi być wyższa (lub na sztorc), aby wyrównać kąt dachówki."
+            note_title: "Ważne:", roof_cant_note: "Pierwsza łata przy okapie musi być wyższa (lub na sztorc), aby wyrównać kąt dachówki.",
+            
+            roof_pitch: "Kąt dachu:", pitch_low: "< 22° (Mały)", pitch_med: "22° - 27° (Standard)", pitch_high: "> 27° (Duży)",
+            pitch_rule_text: "Uwaga: Mniejszy kąt = mniejszy rozstaw (większy zakład). Większy kąt = większy rozstaw.",
+            gutter_rule_title: "Zasada rynny (1/3):", 
+            gutter_rule_text: "Dostosuj LAT tak, aby pierwsza dachówka wystawała na ~1/3 szerokości rynny. Woda musi kapać do rynny.",
+            legend_lat: "LAT (Odległość od krawędzi okapu do góry 1. łaty)",
+            legend_laf: "LAF (Odległość od góry ostatniej łaty do kalenicy)"
         },
         lt: {
             menu_framing: "Karkasas", menu_roof: "Stogas", menu_areas: "Plotai / Kampai", menu_stairs: "Laiptai",
@@ -342,7 +391,7 @@
             pos_start: "Pradžia", pos_end: "Pabaiga", pos_grid: "Tinklelis", pos_opt: "Opt.",
             
             // Roof
-            roof_batten_title: "Grebėstų žingsnis", roof_len: "Gegnės ilgis (X) mm:", 
+            roof_batten_title: "Grebėstų žingsnis", roof_len: "Gegnės ilgis (Nuo karnizo iki kraigo):", 
             dist_lat: "Nuo karnizo (LAT):", dist_laf: "Nuo kraigo (LAF):", 
             lat_hint: "Nuo krašto iki 1-o grebėsto viršaus", laf_hint: "Nuo paskutinio viršaus iki kraigo (30-50mm)",
             max_step: "Max rekomenduojamas:", step_hint: "Patarimas: Čerpė - Užlaida", 
@@ -350,10 +399,18 @@
             roof_hook: "Ruletės kablys:", hook_bottom: "Apačioje (Karnize)", hook_top: "Viršuje (Kraige)",
             calc_roof_btn: "Skaičiuoti grebėstus", roof_info_title: "Standartiniai matmenys (Norvegija)",
             roof_res_count: "Iš viso eilių:", roof_res_step: "Tikslus žingsnis:", roof_res_spacer: "Tarpinė kaladėlė:",
+            roof_eff_len: "Skaičiuojamas ilgis (LAT-LAF):",
             batten_pos: "Grebėstas", pos_eaves: "Karnizas (Pradžia)", pos_ridge: "Kraigas (Pabaiga)",
             std_clay: "<b>Molinės čerpės:</b> 330–370 mm", std_concrete: "<b>Betoninės čerpės:</b> 320–375 mm",
             std_metal: "<b>Skardinė čerpė:</b> ~350 mm", std_slate: "<b>Skalūnas (30x30):</b> 145–160 mm",
-            note_title: "Svarbu:", roof_cant_note: "Pirmas grebėstas karnize turi būti aukštesnis (arba paverstas), kad išlygintų čerpės kampą."
+            note_title: "Svarbu:", roof_cant_note: "Pirmas grebėstas karnize turi būti aukštesnis (arba paverstas), kad išlygintų čerpės kampą.",
+            
+            roof_pitch: "Stogo kampas:", pitch_low: "< 22° (Mažas)", pitch_med: "22° - 27° (Standartas)", pitch_high: "> 27° (Didelis)",
+            pitch_rule_text: "Pastaba: Mažesnis kampas = mažesnis žingsnis (didesnė užlaida). Didesnis = galima didinti. Žiūrėti gamintojo inf.",
+            gutter_rule_title: "Latako taisyklė (1/3):", 
+            gutter_rule_text: "Nustatykite LAT taip, kad pirma čerpė išsikištų ~1/3 į latako plotį. Vanduo turi lašėti į vidų.",
+            legend_lat: "LAT (Lekteavstand Takfot - Atstumas nuo karnizo iki 1 grebėsto viršaus)",
+            legend_laf: "LAF (Lekteavstand Møne - Atstumas nuo paskutinio grebėsto viršaus iki kraigo)"
         }
     };
 
@@ -370,7 +427,6 @@
         document.querySelectorAll('[data-i18n]').forEach(el => {
             let key = el.getAttribute('data-i18n');
             if (translations[lang][key]) {
-                // If it's a list item with bold tags, use innerHTML
                 if(key.startsWith('std_')) {
                     el.innerHTML = translations[lang][key];
                 } else {
@@ -380,7 +436,7 @@
         });
         
         // Update selects
-        ["startMode", "tapeHook", "spacingCc", "roofHook"].forEach(id => {
+        ["startMode", "tapeHook", "spacingCc", "roofHook", "roofPitch"].forEach(id => {
             let select = document.getElementById(id);
             if(select) {
                 for(let opt of select.options) {
@@ -394,6 +450,21 @@
         if(document.getElementById('spacingResult').style.display === 'block') calcSpacing();
         if(document.getElementById('studResult').style.display === 'block') calcStudHeight();
         if(document.getElementById('roofResult').style.display === 'block') calcRoof();
+        updateRoofHints();
+    }
+    
+    function updateRoofHints() {
+        let pitch = document.getElementById('roofPitch').value;
+        let hintEl = document.getElementById('maxStepHint');
+        let ranges = {
+            'low': "Recommended: ~310-330 mm",
+            'med': "Recommended: ~330-350 mm",
+            'high': "Recommended: ~350-375 mm"
+        };
+        // Simple text update based on pitch
+        if(hintEl) {
+            hintEl.innerText = ranges[pitch];
+        }
     }
 
     function toggleInnerWallInput() {
@@ -517,7 +588,8 @@
         let html = `<div class="info-box">
             ${translations[lang].roof_res_count} <b>${count}</b><br>
             ${translations[lang].roof_res_step} <b class="big-result">${realStep.toFixed(1)} mm</b><br>
-            <span style="color:var(--text-muted); font-size:0.9rem;">${translations[lang].roof_res_spacer} <b>${spacerBlock.toFixed(1)} mm</b></span>
+            <span style="color:var(--text-muted); font-size:0.9rem;">${translations[lang].roof_res_spacer} <b>${spacerBlock.toFixed(1)} mm</b></span><br>
+            <span style="color:var(--text-muted); font-size:0.8rem;">${translations[lang].roof_eff_len} ${effLen.toFixed(0)} mm</span>
         </div>`;
         
         html += `<strong>${translations[lang].positions_result}</strong>`;
@@ -556,6 +628,9 @@
         rb.innerHTML = html; 
         rb.style.display = "block";
     }
+    
+    // Initial call to set defaults
+    changeLanguage();
 
 </script>
 </body>
