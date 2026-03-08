@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProNorm Calc by Vytautas Giedraitis</title>
+    <style>
+        :root {
+            --bg-color: #f7f9fa; --card-bg: #ffffff; --text-main: #2d3748;
+            --text-muted: #718096; --primary: #3182ce; --border: #e2e8f0; --accent: #dd6b20;
+            --success: #38a169; --danger: #e53e3e;
+        }
+        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 0; font-size: 14px; }
+        
+        /* HEADER */
+        header { 
+            background-color: var(--card-bg); 
+            padding: 10px 20px; 
+            border-bottom: 3px solid var(--primary); 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .logo-container { display: flex; align-items: center; gap: 15px; }
+        .logo-img { height: 45px; width: auto; object-fit: contain; }
+        h1 { margin: 0; font-size: 1.3rem; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; font-weight: 800; }
+        
+        .header-right { display: flex; align-items: center; gap: 10px; }
+
+        /* Navigation Button */
+        .nav-btn {
+            text-decoration: none;
+            background-color: var(--primary);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .nav-btn:hover { background-color: #2b6cb0; }
+
+        select.lang-select { padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-color); cursor: pointer; font-weight: 600; color: var(--text-main); }
+
+        /* LAYOUT */
+        .wrapper { max-width: 1800px; margin: 20px auto; display: grid; grid-template-columns: 420px 1fr; gap: 20px; padding: 0 20px; }
+        
+        /* CARDS */
+        .card { background: var(--card-bg); padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.04); border: 1px solid var(--border); margin-bottom: 20px; }
+        .card h2 { margin: 0 0 15px 0; font-size: 1.1rem; color: var(--primary); border-bottom: 2px solid var(--bg-color); padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+
+        /* FORMS */
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+        input, select { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e0; border-radius: 6px; font-size: 0.95rem; box-sizing: border-box; transition: 0.2s; }
+        input:focus, select:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.1); }
+        
+        /* SEARCH */
+        .search-box { position: relative; }
+        .search-box input { padding-left: 35px; border-color: var(--primary); }
+        .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--primary); opacity: 0.7; }
+
+        /* BUTTONS */
+        .btn { width: 100%; padding: 12px; border: none; border-radius: 6px; font-weight: 700; cursor: pointer; transition: 0.2s; font-size: 0.95rem; display: flex; justify-content: center; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .btn-add { background: var(--primary); color: white; }
+        .btn-add:hover { background: #2b6cb0; }
+        .btn-custom { background: var(--accent); color: white; }
+        .btn-custom:hover { background: #c05621; }
+        .btn-danger { background: var(--danger); color: white; width: auto; padding: 6px 12px; font-size: 0.75rem; border-radius: 4px; }
+        .btn-print { background: var(--text-main); color: white; margin-top: 20px; }
+
+        /* TABLE */
+        .table-wrap { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border); }
+        table { width: 100%; border-collapse: collapse; background: white; }
+        th { background: #f1f5f9; padding: 12px 15px; text-align: left; font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; border-bottom: 2px solid var(--border); }
+        td { padding: 10px 15px; border-bottom: 1px solid var(--border); vertical-align: middle; color: var(--text-main); }
+        tr:hover td { background: #f7fafc; }
+        
+        /* BADGES */
+        .badge { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+        .badge-std { background: #ebf8ff; color: var(--primary); }
+        .badge-cust { background: #fffaf0; color: var(--accent); }
+
+        /* SUMMARY */
+        .summary-panel { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: auto; padding-top: 20px; border-top: 2px solid var(--border); }
+        .sum-box { background: var(--bg-color); padding: 15px; border-radius: 8px; text-align: center; border: 1px solid var(--border); }
+        .sum-box label { margin-bottom: 5px; font-size: 0.7rem; }
+        .sum-box .val { font-size: 1.5rem; font-weight: 800; color: var(--text-main); }
+        .sum-box.total { background: var(--primary); border-color: var(--primary); }
+        .sum-box.total label { color: #bee3f8; }
+        .sum-box.total .val { color: white; }
+
+        /* CHECKBOXES */
+        .checks { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #fff; padding: 10px; border-radius: 6px; border: 1px solid var(--border); }
+        .check-item { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.9rem; color: var(--text-main); user-select: none; }
+        .check-item input { width: 18px; height: 18px; margin: 0; cursor: pointer; accent-color: var(--primary); }
+
+        @media (max-width: 1000px) { 
+            .wrapper { grid-template-columns: 1fr; } 
+            .summary-panel { grid-template-columns: 1fr 1fr; }
+            header { flex-direction: column; gap: 10px; text-align: center; }
+            .header-right { width: 100%; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-container">
+            <img src="BU_Logo.png" alt="ProBuilder Logo" class="logo-img">
+            <h1>ProNorm Calc <span style="font-weight:400; font-size:0.9rem; color:var(--text-muted); margin-left:10px;">by Vytautas Giedraitis</span></h1>
+        </div>
+        <div class="header-right">
+            <a href="index.html" class="nav-btn" title="Go to Technical Calculator">⬅️ Tech / ProBuilder</a>
+            <select id="lang-select" class="lang-select" onchange="changeLanguage()">
+                <option value="no" selected>Norsk</option>
+                <option value="lt">Lietuvių</option>
+                <option value="en">English</option>
+                <option value="pl">Polski</option>
+            </select>
+        </div>
+    </header>
+
+    <div class="wrapper">
+        <!-- LEFT PANEL -->
+        <div class="sidebar">
+            
+            <!-- DATABASE -->
+            <div class="card">
+                <h2 data-i18n="db_title">📚 Darbų Duomenų Bazė</h2>
+                
+                <div class="form-group search-box">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="taskSearch" data-i18n-ph="search_ph" placeholder="Ieškoti..." onkeyup="filterTasks()">
+                </div>
+
+                <div class="form-group">
+                    <label data-i18n="category">Kategorija:</label>
+                    <select id="catSelect" onchange="loadTasks()"></select>
+                </div>
+
+                <div class="form-group">
+                    <label data-i18n="task">Pasirinkite darbą:</label>
+                    <select id="taskSelect" onchange="updateUnit()"></select>
+                </div>
+
+                <div style="display:flex; gap:15px;">
+                    <div class="form-group" style="flex:1;">
+                        <label id="unitLabel" data-i18n="qty">Kiekis:</label>
+                        <input type="number" id="mainQty" step="0.01" placeholder="0.00">
+                    </div>
+                    <div class="form-group" style="width:100px;">
+                        <label data-i18n="rate">Norma (h):</label>
+                        <input type="text" id="mainRate" readonly style="background:#f1f5f9; text-align:center; font-weight:bold;">
+                    </div>
+                </div>
+
+                <button class="btn btn-add" onclick="addStandard()" data-i18n="btn_add">+ Įtraukti į sąmatą</button>
+            </div>
+
+            <!-- CUSTOM ITEM -->
+            <div class="card" style="border-top: 4px solid var(--accent);">
+                <h2 data-i18n="custom_title" style="color:var(--accent);">✨ Nestandartinis Darbas</h2>
+                <div class="form-group">
+                    <label data-i18n="desc">Pavadinimas:</label>
+                    <input type="text" id="customName" placeholder="...">
+                </div>
+                <div style="display:flex; gap:15px;">
+                    <div class="form-group" style="flex:1;">
+                        <label data-i18n="qty">Kiekis:</label>
+                        <input type="number" id="customQty" placeholder="1">
+                    </div>
+                    <div class="form-group" style="flex:1;">
+                        <label data-i18n="total_hours">Viso Valandų:</label>
+                        <input type="number" id="customTotalH" step="0.5" placeholder="h">
+                    </div>
+                </div>
+                <button class="btn btn-custom" onclick="addCustom()" data-i18n="btn_custom">+ Pridėti savo</button>
+            </div>
+
+            <!-- SETTINGS -->
+            <div class="card">
+                <h2 data-i18n="settings">⚙️ Nustatymai</h2>
+                <div class="form-group">
+                    <label data-i18n="hourly_rate">Valandinis įkainis (NOK/h):</label>
+                    <input type="number" id="hourlyRate" value="650" onchange="renderAll()">
+                </div>
+                
+                <label style="margin-top:15px; display:block;" data-i18n="complexity">Sudėtingumo Koeficientai:</label>
+                <div class="checks">
+                    <label class="check-item"><input type="checkbox" id="cRenov" onchange="renderAll()"> <span data-i18n="c_renov">Renovacija (+10%)</span></label>
+                    <label class="check-item"><input type="checkbox" id="cSmall" onchange="renderAll()"> <span data-i18n="c_small">Maža patalpa (+20%)</span></label>
+                    <label class="check-item"><input type="checkbox" id="cHeight" onchange="renderAll()"> <span data-i18n="c_height">Aukštis >3m (+15%)</span></label>
+                    <label class="check-item"><input type="checkbox" id="cDust" onchange="renderAll()"> <span data-i18n="c_dust">Dulkės (+5%)</span></label>
+                    <label class="check-item"><input type="checkbox" id="cLogi" onchange="renderAll()"> <span data-i18n="c_logi">Logistika (+10%)</span></label>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- RIGHT PANEL -->
+        <div class="main-content">
+            <div class="card" style="min-height: 85vh; display:flex; flex-direction:column;">
+                <h2 style="border-bottom:none;">
+                    <span data-i18n="estimate_title">📋 Darbų Sąmata</span>
+                    <button class="btn btn-danger" onclick="clearAll()" data-i18n="btn_clear">Išvalyti viską</button>
+                </h2>
+                
+                <div class="table-wrap">
+                    <table id="estTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 40%" data-i18n="col_task">Darbas</th>
+                                <th style="width: 15%" data-i18n="col_qty">Kiekis</th>
+                                <th style="width: 10%" data-i18n="col_rate">Norma</th>
+                                <th style="width: 15%" data-i18n="col_total_h">Viso (h)</th>
+                                <th style="width: 15%" data-i18n="col_price">Kaina</th>
+                                <th style="width: 5%"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+
+                <div class="summary-panel">
+                    <div class="sum-box">
+                        <label data-i18n="sum_hours">Viso Valandų</label>
+                        <div class="val" id="sumHours">0.00</div>
+                    </div>
+                    <div class="sum-box">
+                        <label data-i18n="sum_days">Darbo Dienos (7.5h)</label>
+                        <div class="val" id="sumDays">0.0</div>
+                    </div>
+                    <div class="sum-box">
+                        <label data-i18n="sum_price">Suma (Eksl. MVA)</label>
+                        <div class="val" id="sumPrice" style="color:var(--text-main);">0</div>
+                    </div>
+                    <div class="sum-box total">
+                        <label data-i18n="sum_total">VISO (Su 25% MVA)</label>
+                        <div class="val" id="sumTotal">0</div>
+                    </div>
+                </div>
+                
+                <button class="btn btn-print" onclick="window.print()" data-i18n="btn_print">🖨️ Spausdinti / Išsaugoti PDF</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // --- TRANSLATIONS (UI Elements) ---
+    const uiTrans = {
+        lt: {
+            db_title: "📚 Darbų Duomenų Bazė", search_ph: "Ieškoti (pvz: parketas)...", category: "Kategorija:",
+            task: "Pasirinkite darbą:", qty: "Kiekis:", rate: "Norma (h):", btn_add: "+ Įtraukti į sąmatą",
+            custom_title: "✨ Nestandartinis Darbas", desc: "Pavadinimas:", total_hours: "Viso Valandų:", btn_custom: "+ Pridėti savo",
+            settings: "⚙️ Nustatymai", hourly_rate: "Valandinis įkainis (NOK/h):", complexity: "Sudėtingumo Koeficientai:",
+            c_renov: "Renovacija (+10%)", c_small: "Maža patalpa (+20%)", c_height: "Aukštis >3m (+15%)", c_dust: "Dulkės (+5%)", c_logi: "Logistika (+10%)",
+            estimate_title: "📋 Darbų Sąmata", btn_clear: "Išvalyti", col_task: "Darbas", col_qty: "Kiekis", col_rate: "Norma", col_total_h: "Viso (h)", col_price: "Kaina",
+            sum_hours: "Viso Valandų", sum_days: "Darbo Dienos (7.5h)", sum_price: "Suma (Eksl. MVA)", sum_total: "VISO (Su 25% MVA)", btn_print: "🖨️ Spausdinti / PDF"
+        },
+        en: {
+            db_title: "📚 Task Database", search_ph: "Search (e.g., flooring)...", category: "Category:",
+            task: "Select Task:", qty: "Quantity:", rate: "Rate (h):", btn_add: "+ Add to Estimate",
+            custom_title: "✨ Custom Task", desc: "Description:", total_hours: "Total Hours:", btn_custom: "+ Add Custom",
+            settings: "⚙️ Settings", hourly_rate: "Hourly Rate (NOK/h):", complexity: "Complexity Factors:",
+            c_renov: "Renovation (+10%)", c_small: "Small Room (+20%)", c_height: "Height >3m (+15%)", c_dust: "Dust (+5%)", c_logi: "Logistics (+10%)",
+            estimate_title: "📋 Project Estimate", btn_clear: "Clear All", col_task: "Task", col_qty: "Qty", col_rate: "Rate", col_total_h: "Total (h)", col_price: "Price",
+            sum_hours: "Total Hours", sum_days: "Work Days (7.5h)", sum_price: "Total (Excl. VAT)", sum_total: "GRAND TOTAL (Inc. VAT)", btn_print: "🖨️ Print / Save PDF"
+        },
+        no: {
+            db_title: "📚 Arbeidsdatabase", search_ph: "Søk (f.eks. parkett)...", category: "Kategori:",
+            task: "Velg Oppgave:", qty: "Mengde:", rate: "Norm (t):", btn_add: "+ Legg til",
+            custom_title: "✨ Annet Arbeid", desc: "Beskrivelse:", total_hours: "Totalt Timer:", btn_custom: "+ Legg til Egen",
+            settings: "⚙️ Innstillinger", hourly_rate: "Timepris (NOK/t):", complexity: "Tillegg:",
+            c_renov: "Rehabilitering (+10%)", c_small: "Lite rom (+20%)", c_height: "Høyde >3m (+15%)", c_dust: "Støv (+5%)", c_logi: "Logistikk (+10%)",
+            estimate_title: "📋 Kalkyle", btn_clear: "Tøm Alt", col_task: "Oppgave", col_qty: "Mengde", col_rate: "Norm", col_total_h: "Totalt (t)", col_price: "Pris",
+            sum_hours: "Totalt Timer", sum_days: "Arbeidsdager (7.5t)", sum_price: "Sum (Eks. MVA)", sum_total: "TOTALT (Inkl. MVA)", btn_print: "🖨️ Skriv ut / PDF"
+        },
+        pl: {
+            db_title: "📚 Baza Prac", search_ph: "Szukaj (np. parkiet)...", category: "Kategoria:",
+            task: "Wybierz Pracę:", qty: "Ilość:", rate: "Norma (h):", btn_add: "+ Dodaj do Wyceny",
+            custom_title: "✨ Praca Niestandardowa", desc: "Opis:", total_hours: "Razem Godzin:", btn_custom: "+ Dodaj Własne",
+            settings: "⚙️ Ustawienia", hourly_rate: "Stawka Godz. (NOK/h):", complexity: "Współczynniki:",
+            c_renov: "Renowacja (+10%)", c_small: "Małe pom. (+20%)", c_height: "Wysokość >3m (+15%)", c_dust: "Kurz (+5%)", c_logi: "Logistyka (+10%)",
+            estimate_title: "📋 Kosztorys", btn_clear: "Wyczyść", col_task: "Praca", col_qty: "Ilość", col_rate: "Norma", col_total_h: "Razem (h)", col_price: "Cena",
+            sum_hours: "Razem Godzin", sum_days: "Dni Robocze (7.5h)", sum_price: "Suma (Netto)", sum_total: "RAZEM (Brutto 25%)", btn_print: "🖨️ Drukuj / PDF"
+        }
+    };
+
+    // --- CATEGORY TRANSLATIONS ---
+    const catTrans = {
+        c1: { lt: "1. Karkasas (Konstruktyvas)", en: "1. Framing / Structure", no: "1. Reisverk / Bærekonstruksjon", pl: "1. Konstrukcje Drewniane" },
+        c2: { lt: "2. Izoliacija ir Plėvelės", en: "2. Insulation & Foils", no: "2. Isolasjon og Folie", pl: "2. Izolacje i Folie" },
+        c3: { lt: "3. Grindys", en: "3. Flooring", no: "3. Gulv", pl: "3. Podłogi" },
+        c4: { lt: "4. Stogas", en: "4. Roof", no: "4. Tak", pl: "4. Dach" },
+        c5: { lt: "5. Fasadai (Lauko)", en: "5. Facades (Exterior)", no: "5. Fasade (Utvendig)", pl: "5. Elewacje" },
+        c6: { lt: "6. Vidaus Apdaila", en: "6. Interior Finish", no: "6. Innvendig Utførelse", pl: "6. Wykończenie Wnętrz" },
+        c7: { lt: "7. Langai ir Durys", en: "7. Windows & Doors", no: "7. Dører og Vinduer", pl: "7. Okna i Drzwi" },
+        c8: { lt: "8. Terasos ir Balkonai", en: "8. Terraces & Balconies", no: "8. Terrasse og Balkong", pl: "8. Tarasy i Balkony" },
+        c9: { lt: "9. Virtuvė ir Baldai", en: "9. Kitchen & Furniture", no: "9. Kjøkken og Garderobe", pl: "9. Kuchnie i Meble" },
+        c10: { lt: "10. Laiptai", en: "10. Stairs", no: "10. Trapper", pl: "10. Schody" },
+        c11: { lt: "11. Demontavimas", en: "11. Demolition", no: "11. Riving", pl: "11. Demontaż" }
+    };
+
+    // --- MULTILINGUAL MASTER DATA ---
+    const masterData = {
+        c1: [
+            {u: "m2", t: 0.128, n: {lt: "Sijos/Bjelkelag 48x198 c/c 600", en: "Joists 48x198 c/c 600", no: "Bjelkelag 48x198 c/c 600", pl: "Belki stropowe 48x198 c/c 600"}},
+            {u: "m2", t: 0.122, n: {lt: "I-Sijos (I-bjelker) montavimas", en: "I-Joists installation", no: "Montering av I-bjelker", pl: "Montaż belek dwuteowych"}},
+            {u: "m2", t: 0.039, n: {lt: "Karkasas 48x98 c/c 600", en: "Framing 48x98 c/c 600", no: "Bindingsverk 48x98 c/c 600", pl: "Szkielet 48x98 c/c 600"}},
+            {u: "m2", t: 0.042, n: {lt: "Karkasas 48x148 c/c 600", en: "Framing 48x148 c/c 600", no: "Bindingsverk 48x148 c/c 600", pl: "Szkielet 48x148 c/c 600"}},
+            {u: "m2", t: 0.052, n: {lt: "Karkasas 48x198 c/c 600", en: "Framing 48x198 c/c 600", no: "Bindingsverk 48x198 c/c 600", pl: "Szkielet 48x198 c/c 600"}},
+            {u: "m", t: 0.055, n: {lt: "Padas/Svill ant betono", en: "Sill plate on concrete", no: "Sviller på betong", pl: "Podwalina na betonie"}},
+            {u: "m2", t: 0.065, n: {lt: "Pertvara 48x73 mm", en: "Partition wall 48x73 mm", no: "Lettvegg 48x73 mm", pl: "Ścianka działowa 48x73 mm"}},
+            {u: "m2", t: 0.024, n: {lt: "Metalo karkasas (Stål)", en: "Steel framing", no: "Stål stendere", pl: "Szkielet stalowy"}},
+            {u: "m", t: 0.400, n: {lt: "Limtre (Klijuota sija)", en: "Glulam beam", no: "Limtre drager", pl: "Belka klejona (Glulam)"}},
+            {u: "vnt", t: 0.250, n: {lt: "Sąramos/Angokraščių stiprinimas", en: "Lintel reinforcement", no: "Forsterkning av åpninger", pl: "Wzmocnienie nadproży"}}
+        ],
+        c2: [
+            {u: "m2", t: 0.038, n: {lt: "Vata 50-100mm", en: "Insulation 50-100mm", no: "Isolasjon 50-100mm", pl: "Wełna 50-100mm"}},
+            {u: "m2", t: 0.048, n: {lt: "Vata 150-200mm", en: "Insulation 150-200mm", no: "Isolasjon 150-200mm", pl: "Wełna 150-200mm"}},
+            {u: "m2", t: 0.025, n: {lt: "Garo plėvelė + teipavimas", en: "Vapor barrier + taping", no: "Dampsperre + taping", pl: "Folia paroizolacyjna + taśmowanie"}},
+            {u: "m2", t: 0.013, n: {lt: "Vėjo izoliacija (Ruloninė)", en: "Wind barrier (Roll)", no: "Vindsperre (Rull)", pl: "Wiatroizolacja (Rolka)"}},
+            {u: "m2", t: 0.053, n: {lt: "Vėjo gipsas (GU)", en: "Ext. Gypsum (GU)", no: "Gips GU (Utvending)", pl: "Gips wiatroizolacyjny (GU)"}},
+            {u: "m2", t: 0.075, n: {lt: "Asfalto plokštės", en: "Asphalt boards", no: "Asfaltplater", pl: "Płyty bitumiczne"}},
+            {u: "m2", t: 0.060, n: {lt: "Radono plėvelė", en: "Radon barrier", no: "Radonsperre", pl: "Folia antyradonowa"}}
+        ],
+        c3: [
+            {u: "m2", t: 0.066, n: {lt: "Grindų plokštės (Sponplater)", en: "Chipboard flooring", no: "Sponplater gulv", pl: "Płyta wiórowa podłogowa"}},
+            {u: "m2", t: 0.104, n: {lt: "Juodgrindės lentos", en: "Subfloor boards", no: "Undergulv av bord", pl: "Deski podłogowe (podkład)"}},
+            {u: "m2", t: 0.145, n: {lt: "Parketas / Laminatas (Click)", en: "Parquet / Laminate (Click)", no: "Parkett / Laminat (Klikk)", pl: "Parkiet / Laminat (Klik)"}},
+            {u: "m2", t: 0.250, n: {lt: "Parketas (Klijuojamas)", en: "Glued Parquet", no: "Limt parkett", pl: "Parkiet klejony"}},
+            {u: "m2", t: 0.028, n: {lt: "Paklotas (Papp/Skum)", en: "Underlay (Foam/Paper)", no: "Underlag (Ullpapp/Skum)", pl: "Podkład (Pianka/Papier)"}},
+            {u: "m", t: 0.052, n: {lt: "Grindjuostės (Gulvlister)", en: "Baseboards", no: "Gulvlister", pl: "Listwy przypodłogowe"}},
+            {u: "vnt", t: 0.250, n: {lt: "Slenksčiai", en: "Thresholds", no: "Terskel", pl: "Progi"}}
+        ],
+        c4: [
+            {u: "vnt", t: 0.222, n: {lt: "Fermų montavimas <2.3m", en: "Roof trusses install <2.3m", no: "Takstoler <2.3m", pl: "Wiązary dachowe <2.3m"}},
+            {u: "vnt", t: 0.407, n: {lt: "Fermų montavimas >3.7m", en: "Roof trusses install >3.7m", no: "Takstoler >3.7m", pl: "Wiązary dachowe >3.7m"}},
+            {u: "m2", t: 0.156, n: {lt: "Speros (Sperretak) 48x198", en: "Rafters 48x198", no: "Sperretak 48x198", pl: "Krokwie 48x198"}},
+            {u: "m2", t: 0.066, n: {lt: "Stogo pakalimas plokštėmis", en: "Roof sheathing (Boards)", no: "Sutaksplater", pl: "Poszycie dachowe (Płyty)"}},
+            {u: "m2", t: 0.042, n: {lt: "Grebėstai/Lotavimas", en: "Battens / Laths", no: "Sløyfer og Lekter", pl: "Łacenie dachu"}},
+            {u: "m2", t: 0.070, n: {lt: "Čerpės betoninės", en: "Concrete tiles", no: "Takstein (Betong)", pl: "Dachówka betonowa"}},
+            {u: "m2", t: 0.095, n: {lt: "Skarda profiliuota", en: "Metal roofing sheets", no: "Takplater", pl: "Blachodachówka"}},
+            {u: "m", t: 0.180, n: {lt: "Lietaus sistema", en: "Rain gutters/pipes", no: "Takrenne og nedløp", pl: "Rynny i rury spustowe"}}
+        ],
+        c5: [
+            {u: "m2", t: 0.168, n: {lt: "Gulsčios dailylentės", en: "Horizontal cladding", no: "Liggende kledning", pl: "Szlaówka pozioma"}},
+            {u: "m2", t: 0.236, n: {lt: "Stačios dailylentės", en: "Vertical cladding", no: "Stående kledning", pl: "Szlaówka pionowa"}},
+            {u: "m2", t: 0.250, n: {lt: "Fasado plokštės", en: "Facade panels", no: "Fasadeplater", pl: "Płyty elewacyjne"}},
+            {u: "m2", t: 0.031, n: {lt: "Lotavimas fasadui", en: "Facade battens", no: "Utlekting vegg", pl: "Łacenie elewacji"}},
+            {u: "m", t: 0.150, n: {lt: "Vėjalentės/Kampai", en: "Windboards/Corners", no: "Vindski/Isbord/Hjørner", pl: "Wiatrownice/Narożniki"}},
+            {u: "m", t: 0.150, n: {lt: "Pastogės pakalimas", en: "Soffit / Eaves", no: "Gesimskasse", pl: "Podbitka dachowa"}}
+        ],
+        c6: [
+            {u: "m2", t: 0.053, n: {lt: "Gipsas 1 sl. (Sienos)", en: "Drywall 1 layer (Walls)", no: "Gips 1 lag (Vegg)", pl: "Gips 1 warstwa (Ściany)"}},
+            {u: "m2", t: 0.070, n: {lt: "Gipsas 1 sl. (Lubos)", en: "Drywall 1 layer (Ceiling)", no: "Gips 1 lag (Himling)", pl: "Gips 1 warstwa (Sufit)"}},
+            {u: "m2", t: 0.155, n: {lt: "Vidaus dailylentės", en: "Interior paneling", no: "Innvendig panel", pl: "Boazeria wewnętrzna"}},
+            {u: "m2", t: 0.120, n: {lt: "MDF / Smartpanel", en: "MDF Panels", no: "MDF / Smartpanel", pl: "Płyty MDF"}},
+            {u: "m2", t: 0.151, n: {lt: "Lubų karkasas (Medis)", en: "Ceiling furring", no: "Nedlekting himling", pl: "Stelaż sufitowy"}},
+            {u: "m", t: 0.066, n: {lt: "Kampinės/Lubų juostos", en: "Corner/Ceiling strips", no: "Hjørne-/Taklister", pl: "Listwy narożne/sufitowe"}}
+        ],
+        c7: [
+            {u: "vnt", t: 0.550, n: {lt: "Langas standartinis", en: "Window standard", no: "Vindu standard", pl: "Okno standardowe"}},
+            {u: "vnt", t: 1.200, n: {lt: "Langas didelis/Vitrina", en: "Large Window/Showcase", no: "Vindu stort", pl: "Okno duże/Witryna"}},
+            {u: "vnt", t: 0.750, n: {lt: "Lauko durys", en: "Exterior Door", no: "Ytterdør", pl: "Drzwi zewnętrzne"}},
+            {u: "vnt", t: 0.450, n: {lt: "Vidaus durys", en: "Interior Door", no: "Innerdør", pl: "Drzwi wewnętrzne"}},
+            {u: "m", t: 0.250, n: {lt: "Palangės / Angokraščiai", en: "Window lining", no: "Utforinger", pl: "Szpalety okienne"}},
+            {u: "m", t: 0.080, n: {lt: "Apvadai (Durų/Langų)", en: "Casings/Trims", no: "Gerikter/Lister", pl: "Opaski drzwiowe/okienne"}}
+        ],
+        c8: [
+            {u: "m2", t: 0.120, n: {lt: "Terasos karkasas", en: "Terrace framing", no: "Bjelkelag terrasse", pl: "Legary tarasowe"}},
+            {u: "m2", t: 0.155, n: {lt: "Terasinės lentos (Varžtai)", en: "Decking (Screws)", no: "Terrassebord (Skruer)", pl: "Deska tarasowa (Wkręty)"}},
+            {u: "m2", t: 0.220, n: {lt: "Terasinės lentos (Paslėpta)", en: "Decking (Hidden/Camo)", no: "Terrassebord (Skjult)", pl: "Deska tarasowa (Ukryty montaż)"}},
+            {u: "m", t: 0.244, n: {lt: "Turėklai (Lauko)", en: "Railing (Outdoor)", no: "Rekkverk (Ute)", pl: "Balustrada (Zewn.)"}},
+            {u: "vnt", t: 0.500, n: {lt: "Pamatėliai/Poliai", en: "Post foundations", no: "Søyler / Fundament", pl: "Słupy fundamentowe"}}
+        ],
+        c9: [
+            {u: "vnt", t: 0.650, n: {lt: "Spintelė apatinė", en: "Base cabinet", no: "Benkeskap", pl: "Szafka dolna"}},
+            {u: "vnt", t: 0.450, n: {lt: "Spintelė pakabinama", en: "Wall cabinet", no: "Overskap", pl: "Szafka wisząca"}},
+            {u: "vnt", t: 0.850, n: {lt: "Aukšta spinta", en: "Tall cabinet", no: "Høyskap", pl: "Szafa wysoka"}},
+            {u: "m", t: 0.500, n: {lt: "Stalviršis", en: "Countertop", no: "Benkeplate", pl: "Blat kuchenny"}},
+            {u: "vnt", t: 1.200, n: {lt: "Spinta (Garderoba) 1m", en: "Wardrobe 1m", no: "Garderobeskap 1m", pl: "Szafa 1m"}}
+        ],
+        c10: [
+            {u: "vnt", t: 2.500, n: {lt: "Tiesūs laiptai", en: "Straight stairs", no: "Rett trapp", pl: "Schody proste"}},
+            {u: "vnt", t: 4.500, n: {lt: "Sukti laiptai (L/U)", en: "Turned stairs (L/U)", no: "Svingtrapp", pl: "Schody zabiegowe"}},
+            {u: "vnt", t: 1.100, n: {lt: "Palėpės laiptai (Liukas)", en: "Loft hatch/ladder", no: "Loftsluke", pl: "Schody strychowe"}},
+            {u: "m", t: 0.500, n: {lt: "Turėklai vidaus", en: "Handrail interior", no: "Håndløper/Rekkverk inne", pl: "Poręcz wewnętrzna"}}
+        ],
+        c11: [
+            {u: "m2", t: 0.150, n: {lt: "Gipso sienų ardymas", en: "Drywall demolition", no: "Riving av gipsvegger", pl: "Demontaż ścian GK"}},
+            {u: "m2", t: 0.100, n: {lt: "Grindų lupimas", en: "Floor removal", no: "Riving av gulv", pl: "Zrywanie podłogi"}},
+            {u: "vnt", t: 0.500, n: {lt: "Lango išėmimas", en: "Window removal", no: "Utskifting av vindu (ut)", pl: "Demontaż okna"}},
+            {u: "m2", t: 0.200, n: {lt: "Fasado nuėmimas", en: "Cladding removal", no: "Riving av kledning", pl: "Demontaż elewacji"}},
+            {u: "m2", t: 0.250, n: {lt: "Stogo dangos nuėmimas", en: "Roof tile removal", no: "Riving av takstein", pl: "Demontaż dachówki"}}
+        ]
+    };
+
+    let projectItems = [];
+
+    // --- INIT ---
+    window.onload = () => {
+        changeLanguage(); // Loads categories and UI
+    };
+
+    function changeLanguage() {
+        const lang = document.getElementById('lang-select').value;
+        
+        // 1. Translate UI text
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if(uiTrans[lang][key]) el.innerText = uiTrans[lang][key];
+        });
+        document.getElementById('taskSearch').placeholder = uiTrans[lang].search_ph;
+
+        // 2. Translate Categories Dropdown
+        const catS = document.getElementById('catSelect');
+        const currentCat = catS.value; // Remember selection
+        catS.innerHTML = '';
+        for (let k in catTrans) {
+            catS.innerHTML += `<option value="${k}">${catTrans[k][lang]}</option>`;
+        }
+        if(currentCat && catTrans[currentCat]) catS.value = currentCat; // Restore selection
+
+        // 3. Reload Tasks in new language
+        loadTasks();
+        
+        // 4. Re-render Estimate Table (if we stored keys, we could translate live, but keeping simple string for now)
+        // Note: Existing project items retain the language they were added in. 
+        // To make them live-update, we would need to store the 'id' (cat key + index) instead of name.
+        // For this version, only the UI and Selection Menus update live.
+        renderAll();
+    }
+
+    function loadTasks() {
+        const lang = document.getElementById('lang-select').value;
+        const cat = document.getElementById('catSelect').value;
+        const taskS = document.getElementById('taskSelect');
+        
+        // If categories haven't populated yet, cat might be empty
+        if(!masterData[cat]) { 
+            // Select first category by default
+            if(taskS.options.length === 0 && Object.keys(masterData).length > 0) {
+                 // retry after a moment or force first
+            }
+            return; 
+        }
+
+        taskS.innerHTML = '';
+        masterData[cat].forEach((task, i) => {
+            // task.n is now an object {lt:..., en:...}
+            const name = task.n[lang] || task.n['lt']; // Fallback to LT
+            taskS.innerHTML += `<option value="${i}">${name} (${task.t} h/${task.u})</option>`;
+        });
+        updateUnit();
+    }
+
+    function filterTasks() {
+        const text = document.getElementById('taskSearch').value.toLowerCase();
+        const catS = document.getElementById('catSelect');
+        const lang = document.getElementById('lang-select').value;
+        
+        if (text.length < 2) return;
+
+        // Search in ALL languages for better UX, or just current? Let's search Current.
+        for (let catKey in masterData) {
+            const tasks = masterData[catKey];
+            for (let i = 0; i < tasks.length; i++) {
+                const name = tasks[i].n[lang] || tasks[i].n['lt'];
+                if (name.toLowerCase().includes(text)) {
+                    catS.value = catKey;
+                    loadTasks(); // Reloads tasks for this category
+                    document.getElementById('taskSelect').value = i;
+                    updateUnit();
+                    return; 
+                }
+            }
+        }
+    }
+
+    function updateUnit() {
+        const cat = document.getElementById('catSelect').value;
+        const idx = document.getElementById('taskSelect').value;
+        const lang = document.getElementById('lang-select').value;
+        
+        if(masterData[cat] && masterData[cat][idx]) {
+            const item = masterData[cat][idx];
+            // Translate "Qty" label
+            const lbl = uiTrans[lang].qty.replace(':', ''); 
+            document.getElementById('unitLabel').innerText = `${lbl} (${item.u}):`;
+            document.getElementById('mainRate').value = item.t;
+        }
+    }
+
+    function addStandard() {
+        const cat = document.getElementById('catSelect').value;
+        const idx = document.getElementById('taskSelect').value;
+        const q = parseFloat(document.getElementById('mainQty').value);
+        const lang = document.getElementById('lang-select').value;
+
+        if(q > 0) {
+            const item = masterData[cat][idx];
+            // Store the ID so we can translate it later? Or just the string?
+            // Storing the ID object allows dynamic translation of the list!
+            projectItems.push({ 
+                catKey: cat,
+                taskIdx: idx,
+                customName: null, // It's standard
+                qty: q, 
+                unit: item.u, 
+                baseRate: item.t, 
+                type: 'std' 
+            });
+            renderAll();
+        }
+    }
+
+    function addCustom() {
+        const n = document.getElementById('customName').value;
+        const q = parseFloat(document.getElementById('customQty').value);
+        const totalH = parseFloat(document.getElementById('customTotalH').value);
+        
+        if(n && q > 0 && totalH > 0) {
+            const ratePerUnit = totalH / q;
+            projectItems.push({ 
+                catKey: null,
+                taskIdx: null,
+                customName: n, // Custom text
+                qty: q, 
+                unit: "vnt", 
+                baseRate: ratePerUnit, 
+                type: 'cust' 
+            });
+            
+            document.getElementById('customName').value = '';
+            document.getElementById('customQty').value = '';
+            document.getElementById('customTotalH').value = '';
+            renderAll();
+        }
+    }
+
+    function remove(i) {
+        projectItems.splice(i, 1);
+        renderAll();
+    }
+
+    function clearAll() {
+        if(confirm("Are you sure?")) {
+            projectItems = [];
+            renderAll();
+        }
+    }
+
+    function renderAll() {
+        const tbody = document.getElementById('tableBody');
+        const hRate = parseFloat(document.getElementById('hourlyRate').value) || 0;
+        const lang = document.getElementById('lang-select').value;
+        
+        // Coefficients
+        let multiplier = 1.0;
+        if(document.getElementById('cRenov').checked) multiplier += 0.10;
+        if(document.getElementById('cSmall').checked) multiplier += 0.20;
+        if(document.getElementById('cHeight').checked) multiplier += 0.15;
+        if(document.getElementById('cDust').checked) multiplier += 0.05;
+        if(document.getElementById('cLogi').checked) multiplier += 0.10;
+
+        tbody.innerHTML = '';
+        let totalH = 0;
+
+        projectItems.forEach((item, i) => {
+            let itemTotalH = item.baseRate * item.qty * multiplier;
+            totalH += itemTotalH;
+            let price = itemTotalH * hRate;
+
+            // Determine Name
+            let displayName = item.customName;
+            if(item.type === 'std' && item.catKey) {
+                // Fetch translation dynamically
+                const dbItem = masterData[item.catKey][item.taskIdx];
+                displayName = dbItem.n[lang] || dbItem.n['lt'];
+            }
+
+            tbody.innerHTML += `
+                <tr>
+                    <td>
+                        <span class="badge ${item.type === 'std' ? 'badge-std' : 'badge-cust'}">
+                            ${item.type === 'std' ? 'STD' : 'CUST'}
+                        </span> 
+                        ${displayName}
+                    </td>
+                    <td>${item.qty} ${item.unit}</td>
+                    <td>${item.baseRate.toFixed(3)}</td>
+                    <td><strong>${itemTotalH.toFixed(2)} h</strong></td>
+                    <td>${Math.round(price).toLocaleString('no-NO')}</td>
+                    <td style="text-align:right;"><button class="btn btn-danger" onclick="remove(${i})">×</button></td>
+                </tr>
+            `;
+        });
+
+        const totalExMva = totalH * hRate;
+        const mva = totalExMva * 0.25;
+        const grandTotal = totalExMva + mva;
+
+        document.getElementById('sumHours').innerText = totalH.toFixed(2);
+        document.getElementById('sumDays').innerText = (totalH / 7.5).toFixed(1);
+        document.getElementById('sumPrice').innerText = totalExMva.toLocaleString('no-NO') + " NOK";
+        document.getElementById('sumTotal').innerText = grandTotal.toLocaleString('no-NO') + " NOK";
+    }
+</script>
+
+</body>
+</html>

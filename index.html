@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="no">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -29,6 +29,24 @@
         .logo-img { height: 40px; width: auto; object-fit: contain; }
         h1 { margin: 0; font-size: 1.2rem; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; }
         
+        .header-right { display: flex; align-items: center; gap: 10px; }
+        
+        /* Navigation Button */
+        .nav-btn {
+            text-decoration: none;
+            background-color: var(--accent);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .nav-btn:hover { background-color: #c05621; }
+
         select#lang-select { padding: 8px; border: 1px solid var(--border); border-radius: 5px; background: var(--bg-color); cursor: pointer; }
         
         /* STICKY TABS BELOW HEADER */
@@ -84,6 +102,11 @@
         table.std-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin-top: 10px; }
         table.std-table th, table.std-table td { border: 1px solid var(--border); padding: 8px; text-align: left; }
         table.std-table th { background-color: #f1f5f9; color: var(--text-main); }
+        
+        @media (max-width: 600px) {
+            header { flex-direction: column; gap:10px; text-align:center;}
+            .header-right { width: 100%; justify-content: center; }
+        }
     </style>
 </head>
 <body>
@@ -91,14 +114,17 @@
     <header>
         <div class="logo-container">
             <img src="BU_Logo.png" alt="Logo" class="logo-img">
-            <h3>ProBuilder Calc by Vytautas G.</h3>
+            <h3>ProBuilder Calc</h3>
         </div>
-        <select id="lang-select" onchange="changeLanguage()">
-            <option value="en">English</option>
-            <option value="no">Norsk</option>
-            <option value="pl">Polski</option>
-            <option value="lt">Lietuvių</option>
-        </select>
+        <div class="header-right">
+            <a href="normcalc.html" class="nav-btn" title="Go to Norms Calculator">Norms / Priser 💰</a>
+            <select id="lang-select" onchange="changeLanguage()">
+                <option value="no" selected>Norsk</option>
+                <option value="en">English</option>
+                <option value="pl">Polski</option>
+                <option value="lt">Lietuvių</option>
+            </select>
+        </div>
     </header>
 
     <div class="tabs">
