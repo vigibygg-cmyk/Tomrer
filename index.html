@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProBuilder Calc by Vytautas Giedraitis</title>
+    <style>
+        :root {
+            --bg-color: #f7f9fa; --card-bg: #ffffff; --text-main: #2d3748;
+            --text-muted: #718096; --primary: #3182ce; --border: #e2e8f0; --accent: #dd6b20;
+            --success: #38a169;
+        }
+        body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 0; }
+        header { background-color: var(--card-bg); padding: 15px 20px; border-bottom: 2px solid var(--primary); display: flex; justify-content: space-between; align-items: center; }
+        h1 { margin: 0; font-size: 1.3rem; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; }
+        select#lang-select { padding: 8px; border: 1px solid var(--border); border-radius: 5px; background: var(--bg-color); cursor: pointer; }
+        
+        .tabs { display: flex; overflow-x: auto; background: var(--card-bg); padding: 0 10px; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+        .tab-btn { padding: 15px 20px; border: none; background: none; font-size: 0.9rem; color: var(--text-muted); cursor: pointer; white-space: nowrap; border-bottom: 3px solid transparent; transition: 0.3s; }
+        .tab-btn.active { color: var(--primary); border-bottom: 3px solid var(--primary); font-weight: bold; }
+        
+        .container { padding: 15px; max-width: 600px; margin: 0 auto; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .card { background: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid var(--border); }
+        h3 { margin-top: 0; font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 15px; color: var(--primary); }
+        
+        .form-group { margin-bottom: 12px; }
+        label { display: block; margin-bottom: 4px; font-weight: 600; font-size: 0.85rem; color: var(--text-main); }
+        input, select { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; font-size: 1rem; transition: border 0.2s; }
+        input:focus { border-color: var(--primary); outline: none; }
+        
+        .row { display: flex; gap: 10px; }
+        .row > div { flex: 1; }
+        
+        .checkbox-group { display: flex; align-items: center; gap: 10px; padding: 12px; background: #fffaf0; border: 1px solid #feebc8; border-radius: 6px; margin: 15px 0; }
+        .checkbox-group input { width: 22px; height: 22px; margin: 0; cursor: pointer; }
+        
+        button.calc-btn { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 6px; font-size: 1rem; font-weight: bold; cursor: pointer; margin-top: 10px; transition: background 0.2s; }
+        button.calc-btn:hover { background: #2b6cb0; }
+        
+        .result-box { margin-top: 20px; padding: 15px; background: #ebf8ff; border-left: 5px solid var(--primary); border-radius: 4px; }
+        .info-box { background: #fff5f5; padding: 12px; border-radius: 6px; border-left: 5px solid #f56565; margin-bottom: 15px; font-size: 0.9rem; line-height: 1.4; }
+        
+        .list-item { padding: 10px 0; border-bottom: 1px solid #edf2f7; display: flex; justify-content: space-between; align-items: center; }
+        .mark-edge { color: #2d3748; font-weight: 800; font-size: 1.1rem; }
+        .mark-center { color: var(--text-muted); font-size: 0.85rem; }
+        .optimized-row { background-color: #fffaf0; border-left: 4px solid var(--accent); padding-left: 10px; }
+        .optimized-badge { font-size: 0.7rem; background: var(--accent); color: white; padding: 2px 6px; border-radius: 4px; margin-left: 5px; text-transform: uppercase; }
+        .warning-row { background-color: #fff5f5; border-left: 4px solid #f56565; padding-left: 10px; }
+        .warning-badge { font-size: 0.7rem; background: #f56565; color: white; padding: 2px 6px; border-radius: 4px; margin-left: 5px; text-transform: uppercase; }
+        
+        .big-result { font-size: 1.5rem; color: var(--success); text-align: center; display: block; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h2>ProBuilder Calc by Vytautas G.</h2>
+        <select id="lang-select" onchange="changeLanguage()">
+            <option value="en">English</option>
+            <option value="no">Norsk</option>
+            <option value="pl">Polski</option>
+            <option value="lt">Lietuvių</option>
+        </select>
+    </header>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="openTab('karkasas')" data-i18n="menu_framing">Framing</button>
+        <button class="tab-btn" onclick="openTab('stogas')" data-i18n="menu_roof">Roof</button>
+        <button class="tab-btn" onclick="openTab('plotai')" data-i18n="menu_areas">Areas / Angles</button>
+        <button class="tab-btn" onclick="openTab('laiptai')" data-i18n="menu_stairs">Stairs</button>
+    </div>
+
+    <div class="container">
+        <!-- FRAME TAB -->
+        <div id="karkasas" class="tab-content active">
+            
+            <div class="card">
+                <h3 data-i18n="stud_spacing_title">1. Stud Layout (c/c)</h3>
+                <div class="row">
+                    <div class="form-group">
+                        <label data-i18n="wall_length">Wall length (mm):</label>
+                        <input type="number" id="wallLen" placeholder="4500">
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="spacing">Spacing c/c:</label>
+                        <select id="spacingCc">
+                            <option value="600">600 mm</option>
+                            <option value="400">400 mm</option>
+                            <option value="300">300 mm</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group">
+                        <label data-i18n="stud_thick">Stud thick. (mm):</label>
+                        <input type="number" id="studT" value="48">
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="start_point">Starting zero:</label>
+                        <select id="startMode" onchange="toggleInnerWallInput()">
+                            <option value="edge" data-i18n="start_edge">Outer edge</option>
+                            <option value="inner" data-i18n="start_inner">Inner corner</option>
+                            <option value="center" data-i18n="start_center">Center of wall</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group" id="innerWallGroup" style="display: none;">
+                    <label data-i18n="inner_wall_thick">Intersecting wall (mm):</label>
+                    <input type="number" id="innerWallT" value="148">
+                </div>
+
+                <div class="form-group">
+                    <label data-i18n="tape_hook">Tape hook:</label>
+                    <select id="tapeHook">
+                        <option value="left" data-i18n="hook_left">On Left (pull right)</option>
+                        <option value="right" data-i18n="hook_right">On Right (pull left)</option>
+                    </select>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="optimizeGap" checked>
+                    <label for="optimizeGap" data-i18n="opt_gap_label">Smart end (avoid < 15cm gaps)</label>
+                </div>
+
+                <button class="calc-btn" onclick="calcSpacing()" data-i18n="calc_spacing_btn">Calculate layout</button>
+                <div class="result-box" id="spacingResult" style="display: none;"></div>
+            </div>
+
+            <div class="card">
+                <h3 data-i18n="stud_height_title">2. Stud Height Calculator</h3>
+                <div class="form-group">
+                    <label data-i18n="total_wall_height">Total wall height (mm):</label>
+                    <input type="number" id="totalHeight" placeholder="2400">
+                </div>
+                <div class="row">
+                    <div class="form-group">
+                        <label data-i18n="bottom_svill_thick">Bottom plate (mm):</label>
+                        <input type="number" id="botSvillThick" value="48">
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="bottom_svill_count">Qty:</label>
+                        <input type="number" id="botSvillCount" value="1">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="form-group">
+                        <label data-i18n="top_svill_thick">Top plate (mm):</label>
+                        <input type="number" id="topSvillThick" value="48">
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="top_svill_count">Qty:</label>
+                        <input type="number" id="topSvillCount" value="2">
+                    </div>
+                </div>
+                <button class="calc-btn" onclick="calcStudHeight()" data-i18n="calc_button">Calculate Height</button>
+                <div class="result-box" id="studResult" style="display: none;"></div>
+            </div>
+
+        </div>
+
+        <!-- ROOF TAB -->
+        <div id="stogas" class="tab-content">
+            <div class="card">
+                <h3 data-i18n="roof_batten_title">Roof Batten Spacing</h3>
+                
+                <div class="form-group">
+                     <label data-i18n="roof_len">Total Rafter Length (X) mm:</label>
+                     <input type="number" id="roofLen" placeholder="6250">
+                </div>
+
+                <div class="row">
+                    <div class="form-group">
+                        <label data-i18n="dist_lat">Eaves dist. (LAT) mm:</label>
+                        <input type="number" id="distLAT" placeholder="350" value="350">
+                        <small style="color:var(--text-muted); font-size:0.75rem;" data-i18n="lat_hint">Edge to Top of 1st batten</small>
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="dist_laf">Ridge dist. (LAF) mm:</label>
+                        <input type="number" id="distLAF" placeholder="40" value="40">
+                        <small style="color:var(--text-muted); font-size:0.75rem;" data-i18n="laf_hint">Top of last batten to Ridge (30-50mm)</small>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="form-group">
+                        <label data-i18n="max_step">Max Recommended Step (mm):</label>
+                        <input type="number" id="maxStep" placeholder="350" value="350">
+                        <small style="color:var(--text-muted); display:block; margin-top:5px;" data-i18n="step_hint">Tip: Tile length - Overlap (e.g., 420-70=350)</small>
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="batten_width">Batten Width (mm):</label>
+                        <input type="number" id="battenWidth" value="48">
+                        <small style="color:var(--text-muted); display:block; margin-top:5px;" data-i18n="spacer_hint">For spacer block calc</small>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label data-i18n="roof_hook">Tape Hook Position:</label>
+                    <select id="roofHook">
+                         <option value="bottom" data-i18n="hook_bottom">Bottom (Eaves)</option>
+                         <option value="top" data-i18n="hook_top">Top (Ridge)</option>
+                    </select>
+                </div>
+
+                <button class="calc-btn" onclick="calcRoof()" data-i18n="calc_roof_btn">Calculate Battens</button>
+                <div class="result-box" id="roofResult" style="display: none;"></div>
+            </div>
+            
+            <div class="card">
+                 <h3 data-i18n="roof_info_title">Typical Spacings (Norway)</h3>
+                 <div class="info-box">
+                     <ul style="padding-left: 20px; margin: 0;">
+                         <li data-i18n="std_clay"><b>Clay Tiles:</b> 330–370 mm</li>
+                         <li data-i18n="std_concrete"><b>Concrete Tiles:</b> 320–375 mm</li>
+                         <li data-i18n="std_metal"><b>Metal Tile:</b> ~350 mm</li>
+                         <li data-i18n="std_slate"><b>Slate (30x30):</b> 145–160 mm</li>
+                     </ul>
+                 </div>
+                 <div class="info-box" style="border-left-color: var(--accent); background: #fffaf0;">
+                     <strong data-i18n="note_title">Important:</strong>
+                     <p style="margin: 5px 0 0 0;" data-i18n="roof_cant_note">The first batten at eaves must be higher (or on edge) to compensate for tile angle.</p>
+                 </div>
+            </div>
+        </div>
+        
+        <div id="plotai" class="tab-content"><h2 data-i18n="menu_areas">Areas / Angles</h2><p data-i18n="placeholder_text">Coming soon...</p></div>
+        <div id="laiptai" class="tab-content"><h2 data-i18n="menu_stairs">Stairs</h2><p data-i18n="placeholder_text">Coming soon...</p></div>
+    </div>
+
+<script>
+    const translations = {
+        en: {
+            menu_framing: "Framing", menu_roof: "Roof", menu_areas: "Areas / Angles", menu_stairs: "Stairs",
+            stud_spacing_title: "1. Stud Layout (c/c)", wall_length: "Wall length (mm):", spacing: "Spacing c/c:",
+            stud_thick: "Stud thick. (mm):", start_point: "Starting zero:", start_edge: "Outer edge", 
+            start_inner: "Inner corner", start_center: "Center of wall", inner_wall_thick: "Intersecting wall (mm):",
+            tape_hook: "Tape hook:", hook_left: "On Left (pull right)", hook_right: "On Right (pull left)",
+            opt_gap_label: "Smart end (avoid < 15cm gaps)", calc_spacing_btn: "Calculate layout",
+            edge_mark: "Mark", center_mark: "Center", opt_badge: "Optimized", warn_badge: "Conflict",
+            instr_left: "Hook on LEFT. Put X to the RIGHT ➡️ of mark.",
+            instr_right: "Hook on RIGHT. Put X to the LEFT ⬅️ of mark.",
+            stud_height_title: "2. Stud Height Calculator", total_wall_height: "Total wall height (mm):",
+            bottom_svill_thick: "Bottom plate (mm):", bottom_svill_count: "Qty:",
+            top_svill_thick: "Top plate (mm):", top_svill_count: "Qty:", calc_button: "Calculate Height",
+            result_height: "Cut length:", placeholder_text: "Coming soon...", positions_result: "Marking positions:",
+            pos_start: "Start Stud", pos_end: "End Stud", pos_grid: "Grid", pos_opt: "Optimized",
+            
+            // Roof
+            roof_batten_title: "Roof Batten Spacing", roof_len: "Total Rafter Length (X) mm:", 
+            dist_lat: "Eaves dist. (LAT) mm:", dist_laf: "Ridge dist. (LAF) mm:", 
+            lat_hint: "Edge to Top of 1st batten", laf_hint: "Top of last batten to Ridge (30-50mm)",
+            max_step: "Max Rec. Step (mm):", step_hint: "Tip: Tile length - Overlap (e.g. 420-70=350)", 
+            batten_width: "Batten Width (mm):", spacer_hint: "For spacer block calc",
+            roof_hook: "Tape Hook Position:", hook_bottom: "Bottom (Eaves) -> Pull Up", hook_top: "Top (Ridge) -> Pull Down",
+            calc_roof_btn: "Calculate Battens", roof_info_title: "Common Spacings (Norway)",
+            roof_res_count: "Total Rows:", roof_res_step: "Exact Step:", roof_res_spacer: "Spacer Block:",
+            batten_pos: "Batten", pos_eaves: "Eaves (Start)", pos_ridge: "Ridge (End)",
+            std_clay: "<b>Clay Tiles:</b> 330–370 mm", std_concrete: "<b>Concrete Tiles:</b> 320–375 mm",
+            std_metal: "<b>Metal Tile:</b> ~350 mm", std_slate: "<b>Slate (30x30):</b> 145–160 mm",
+            note_title: "Important:", roof_cant_note: "The first batten at eaves must be higher (or on edge) to compensate for tile angle."
+        },
+        no: {
+            menu_framing: "Reisverk", menu_roof: "Tak", menu_areas: "Areal", menu_stairs: "Trapper",
+            stud_spacing_title: "1. Stenderinndeling (c/c)", wall_length: "Vegglengde (mm):", spacing: "Senteravstand:",
+            stud_thick: "Stendertykkelse (mm):", start_point: "Målebånd start:", start_edge: "Ytterkant", 
+            start_inner: "Innerhjørne", start_center: "Midten av vegg", inner_wall_thick: "Tilstøtende vegg (mm):",
+            tape_hook: "Målebånd kile:", hook_left: "Venstre side", hook_right: "Høyre side",
+            opt_gap_label: "Smart slutt (unngå < 15cm avstand)", calc_spacing_btn: "Beregn",
+            edge_mark: "Merke", center_mark: "Senter", opt_badge: "Optimalisert", warn_badge: "Konflikt",
+            instr_left: "Kile på VENSTRE. Plasser X til HØYRE ➡️",
+            instr_right: "Kile på HØYRE. Plasser X til VENSTRE ⬅️",
+            stud_height_title: "2. Stenderhøyde", total_wall_height: "Total vegghøyde (mm):",
+            bottom_svill_thick: "Bunnsvill (mm):", bottom_svill_count: "Antall:",
+            top_svill_thick: "Toppsvill (mm):", top_svill_count: "Antall:", calc_button: "Beregn høyde",
+            result_height: "Kapplengde:", placeholder_text: "Kommer snart...", positions_result: "Plasseringer:",
+            pos_start: "Start", pos_end: "Slutt", pos_grid: "Grid", pos_opt: "Opt.",
+            
+            // Roof
+            roof_batten_title: "Lekteavstand (Tak)", roof_len: "Total taklengde (mm):", 
+            dist_lat: "Avst. fra raft (LAT):", dist_laf: "Avst. fra møne (LAF):", 
+            lat_hint: "Kant til Topp av 1. lekte", laf_hint: "Topp av siste lekte til Møne (30-50mm)",
+            max_step: "Maks anbefalt steg (mm):", step_hint: "Tips: Steinlengde - Overlegg", 
+            batten_width: "Lektbredde (mm):", spacer_hint: "For beregning av avstandskloss",
+            roof_hook: "Målebånd kile:", hook_bottom: "Bunn (Raft) -> Dra opp", hook_top: "Topp (Møne) -> Dra ned",
+            calc_roof_btn: "Beregn lekter", roof_info_title: "Vanlige avstander (Norge)",
+            roof_res_count: "Antall rader:", roof_res_step: "Eksakt steg:", roof_res_spacer: "Avstandskloss:",
+            batten_pos: "Lekte", pos_eaves: "Raft (Start)", pos_ridge: "Møne (Slutt)",
+            std_clay: "<b>Teglstein:</b> 330–370 mm", std_concrete: "<b>Betongstein:</b> 320–375 mm",
+            std_metal: "<b>Takpanne (Metal):</b> ~350 mm", std_slate: "<b>Skifer (30x30):</b> 145–160 mm",
+            note_title: "Viktig:", roof_cant_note: "Takfotslekten må være høyere (eller på høykant) for å kompensere for taksteinens vinkel."
+        },
+        pl: {
+            menu_framing: "Konstrukcje", menu_roof: "Dach", menu_areas: "Powierzchnie", menu_stairs: "Schody",
+            stud_spacing_title: "1. Rozstaw słupków (c/c)", wall_length: "Długość ściany (mm):", spacing: "Rozstaw c/c:",
+            stud_thick: "Grubość słupka (mm):", start_point: "Punkt zero:", start_edge: "Krawędź zewn.", 
+            start_inner: "Narożnik wewn.", start_center: "Środek ściany", inner_wall_thick: "Ściana poprzeczna (mm):",
+            tape_hook: "Zaczep miary:", hook_left: "Z lewej strony", hook_right: "Z prawej strony",
+            opt_gap_label: "Inteligentny koniec (unikaj < 15cm)", calc_spacing_btn: "Oblicz rozstaw",
+            edge_mark: "Kreska", center_mark: "Środek", opt_badge: "Zoptymalizowano", warn_badge: "Konflikt",
+            instr_left: "Zaczep po LEWEJ. Znak X po PRAWEJ ➡️ od kreski.",
+            instr_right: "Zaczep po PRAWEJ. Znak X po LEWEJ ⬅️ od kreski.",
+            stud_height_title: "2. Wysokość słupka", total_wall_height: "Wysokość całkowita (mm):",
+            bottom_svill_thick: "Podwalina (mm):", bottom_svill_count: "Ilość:",
+            top_svill_thick: "Oczep (mm):", top_svill_count: "Ilość:", calc_button: "Oblicz wysokość",
+            result_height: "Długość cięcia:", placeholder_text: "Wkrótce...", positions_result: "Pozycje znakowania:",
+            pos_start: "Start", pos_end: "Koniec", pos_grid: "Grid", pos_opt: "Opt.",
+            
+            // Roof
+            roof_batten_title: "Rozstaw łat dachowych", roof_len: "Długość krokwi (mm):", 
+            dist_lat: "Odl. od okapu (LAT):", dist_laf: "Odl. od kalenicy (LAF):", 
+            lat_hint: "Krawędź do Góry 1. łaty", laf_hint: "Góra ost. łaty do Kalenicy (30-50mm)",
+            max_step: "Max zalecany rozstaw:", step_hint: "Tip: Długość dachówki - Zakład", 
+            batten_width: "Szerokość łaty (mm):", spacer_hint: "Do obliczenia klocka",
+            roof_hook: "Zaczep miary:", hook_bottom: "Dół (Okap) -> W górę", hook_top: "Góra (Kalenica) -> W dół",
+            calc_roof_btn: "Oblicz łaty", roof_info_title: "Typowe wymiary (Norwegia)",
+            roof_res_count: "Ilość rzędów:", roof_res_step: "Dokładny rozstaw:", roof_res_spacer: "Klocek dystansowy:",
+            batten_pos: "Łata", pos_eaves: "Okap (Start)", pos_ridge: "Kalenica (Koniec)",
+            std_clay: "<b>Dachówka ceramiczna:</b> 330–370 mm", std_concrete: "<b>Dachówka betonowa:</b> 320–375 mm",
+            std_metal: "<b>Blachodachówka:</b> ~350 mm", std_slate: "<b>Łupek (30x30):</b> 145–160 mm",
+            note_title: "Ważne:", roof_cant_note: "Pierwsza łata przy okapie musi być wyższa (lub na sztorc), aby wyrównać kąt dachówki."
+        },
+        lt: {
+            menu_framing: "Karkasas", menu_roof: "Stogas", menu_areas: "Plotai / Kampai", menu_stairs: "Laiptai",
+            stud_spacing_title: "1. Stenderių išdėstymas (c/c)", wall_length: "Sienos ilgis (mm):", spacing: "Žingsnis c/c:",
+            stud_thick: "Stenderio storis (mm):", start_point: "Ruletės nulis:", start_edge: "Išorinis kraštas", 
+            start_inner: "Vidinis kampas", start_center: "Sienos vidurys", inner_wall_thick: "Susikertanti siena (mm):",
+            tape_hook: "Ruletės kablys:", hook_left: "Kairėje (traukiama į dešinę)", hook_right: "Dešinėje (traukiama į kairę)",
+            opt_gap_label: "Išmanioji pabaiga (vengti tarpų < 15cm)", calc_spacing_btn: "Skaičiuoti išdėstymą",
+            edge_mark: "Žyma", center_mark: "Centras", opt_badge: "Optimizuota", warn_badge: "Konfliktas",
+            instr_left: "Kablys KAIRĖJE. Žymime brūkšnį, X dedame į DEŠINĘ ➡️",
+            instr_right: "Kablys DEŠINĖJE. Žymime brūkšnį, X dedame į KAIRĘ ⬅️",
+            stud_height_title: "2. Stenderio aukščio skaičiuoklė", total_wall_height: "Bendras sienos aukštis (mm):",
+            bottom_svill_thick: "Apatinis tašas (mm):", bottom_svill_count: "Kiekis:",
+            top_svill_thick: "Viršutinis tašas (mm):", top_svill_count: "Kiekis:", calc_button: "Skaičiuoti aukštį",
+            result_height: "Pjovimo ilgis:", placeholder_text: "Netrukus bus užpildyta...", positions_result: "Žymėjimo vietos:",
+            pos_start: "Pradžia", pos_end: "Pabaiga", pos_grid: "Tinklelis", pos_opt: "Opt.",
+            
+            // Roof
+            roof_batten_title: "Grebėstų žingsnis", roof_len: "Gegnės ilgis (X) mm:", 
+            dist_lat: "Nuo karnizo (LAT):", dist_laf: "Nuo kraigo (LAF):", 
+            lat_hint: "Nuo krašto iki 1-o grebėsto viršaus", laf_hint: "Nuo paskutinio viršaus iki kraigo (30-50mm)",
+            max_step: "Max rekomenduojamas:", step_hint: "Patarimas: Čerpė - Užlaida", 
+            batten_width: "Grebėsto plotis (mm):", spacer_hint: "Tarpinės kaladėlės skaičiavimui",
+            roof_hook: "Ruletės kablys:", hook_bottom: "Apačioje (Karnize)", hook_top: "Viršuje (Kraige)",
+            calc_roof_btn: "Skaičiuoti grebėstus", roof_info_title: "Standartiniai matmenys (Norvegija)",
+            roof_res_count: "Iš viso eilių:", roof_res_step: "Tikslus žingsnis:", roof_res_spacer: "Tarpinė kaladėlė:",
+            batten_pos: "Grebėstas", pos_eaves: "Karnizas (Pradžia)", pos_ridge: "Kraigas (Pabaiga)",
+            std_clay: "<b>Molinės čerpės:</b> 330–370 mm", std_concrete: "<b>Betoninės čerpės:</b> 320–375 mm",
+            std_metal: "<b>Skardinė čerpė:</b> ~350 mm", std_slate: "<b>Skalūnas (30x30):</b> 145–160 mm",
+            note_title: "Svarbu:", roof_cant_note: "Pirmas grebėstas karnize turi būti aukštesnis (arba paverstas), kad išlygintų čerpės kampą."
+        }
+    };
+
+    function openTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        event.currentTarget.classList.add('active');
+    }
+
+    function changeLanguage() {
+        let lang = document.getElementById('lang-select').value;
+        document.documentElement.lang = lang;
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            let key = el.getAttribute('data-i18n');
+            if (translations[lang][key]) {
+                // If it's a list item with bold tags, use innerHTML
+                if(key.startsWith('std_')) {
+                    el.innerHTML = translations[lang][key];
+                } else {
+                    el.innerText = translations[lang][key];
+                }
+            }
+        });
+        
+        // Update selects
+        ["startMode", "tapeHook", "spacingCc", "roofHook"].forEach(id => {
+            let select = document.getElementById(id);
+            if(select) {
+                for(let opt of select.options) {
+                    let i18n = opt.getAttribute('data-i18n');
+                    if(i18n && translations[lang][i18n]) opt.innerText = translations[lang][i18n];
+                }
+            }
+        });
+        
+        // Re-calculate if results are visible
+        if(document.getElementById('spacingResult').style.display === 'block') calcSpacing();
+        if(document.getElementById('studResult').style.display === 'block') calcStudHeight();
+        if(document.getElementById('roofResult').style.display === 'block') calcRoof();
+    }
+
+    function toggleInnerWallInput() {
+        document.getElementById('innerWallGroup').style.display = 
+            (document.getElementById('startMode').value === 'inner') ? 'block' : 'none';
+    }
+
+    function calcStudHeight() {
+        let total = parseFloat(document.getElementById('totalHeight').value);
+        let bT = parseFloat(document.getElementById('botSvillThick').value) || 0;
+        let bC = parseFloat(document.getElementById('botSvillCount').value) || 0;
+        let tT = parseFloat(document.getElementById('topSvillThick').value) || 0;
+        let tC = parseFloat(document.getElementById('topSvillCount').value) || 0;
+        let lang = document.getElementById('lang-select').value;
+        let resBox = document.getElementById('studResult');
+        
+        if(!total) return;
+        
+        let res = total - (bT * bC + tT * tC);
+        resBox.style.display = "block";
+        resBox.innerHTML = `${translations[lang].result_height} <span class="big-result">${res} mm</span>`;
+    }
+
+    function calcSpacing() {
+        let L = parseFloat(document.getElementById('wallLen').value);
+        let T = parseFloat(document.getElementById('studT').value);
+        let S = parseFloat(document.getElementById('spacingCc').value);
+        let mode = document.getElementById('startMode').value;
+        let hook = document.getElementById('tapeHook').value;
+        let innerT = (mode === 'inner') ? parseFloat(document.getElementById('innerWallT').value) || 0 : 0;
+        let opt = document.getElementById('optimizeGap').checked;
+        let lang = document.getElementById('lang-select').value;
+        
+        if(!L || !T || !S) return;
+
+        let pts = [];
+        function addP(center, type, note='') { pts.push({c: center, type: type, note: note}); }
+
+        // 1. Grid
+        if(mode === 'edge') {
+            addP(T/2, 'start');
+            for(let x=S; x < L; x+=S) addP(x, 'grid');
+        } 
+        else if(mode === 'inner') {
+            addP(innerT + T/2, 'start');
+            for(let x=S; x < L; x+=S) {
+                let gridStart = x - T/2;
+                let wallStart = innerT + T; 
+                if(gridStart > wallStart) addP(x, 'grid'); 
+            }
+        } 
+        else if(mode === 'center') {
+            let mid = L/2;
+            addP(mid, 'grid', 'Center');
+            for(let x=mid+S; x < L; x+=S) addP(x, 'grid');
+            for(let x=mid-S; x > 0; x-=S) addP(x, 'grid');
+            pts.sort((a,b) => a.c - b.c);
+        }
+
+        // 2. Smart End
+        let endStudCenter = L - T/2;
+        pts.sort((a,b) => a.c - b.c);
+        let lastStud = pts[pts.length-1];
+        let gap = (L - T) - (lastStud.c + T/2);
+
+        if(opt && gap < 150 && gap > -T) { 
+             pts.pop();
+             let prev = pts[pts.length-1];
+             let newCenter = prev.c + (endStudCenter - prev.c) / 2;
+             addP(newCenter, 'opt');
+        } else if (gap < -T/2) {
+             pts.pop();
+        }
+        addP(endStudCenter, 'end');
+        pts.sort((a,b) => a.c - b.c);
+
+        // 3. Render
+        let html = `<div class="info-box"><strong>${hook==='left'?translations[lang].instr_left:translations[lang].instr_right}</strong></div>`;
+        html += `<strong>${translations[lang].positions_result}</strong>`;
+        
+        pts.forEach((p, i) => {
+            let mark = p.c - T/2;
+            let typeLabel = "";
+            let rowClass = "";
+            
+            if(p.type === 'opt') { typeLabel = `<span class="optimized-badge">${translations[lang].pos_opt}</span>`; rowClass="optimized-row"; }
+            if(p.type === 'start') { typeLabel = `(${translations[lang].pos_start})`; }
+            if(p.type === 'end') { typeLabel = `(${translations[lang].pos_end})`; }
+            
+            html += `<div class="list-item ${rowClass}">
+                <span><b>${translations[lang].edge_mark}:</b> <span class="mark-edge">${Math.round(mark)}</span> mm ${typeLabel}</span>
+                <span class="mark-center">C: ${Math.round(p.c)}</span>
+            </div>`;
+        });
+        
+        let rb = document.getElementById('spacingResult');
+        rb.innerHTML = html; rb.style.display = "block";
+    }
+
+    function calcRoof() {
+        let X = parseFloat(document.getElementById('roofLen').value);
+        let LAT = parseFloat(document.getElementById('distLAT').value);
+        let LAF = parseFloat(document.getElementById('distLAF').value);
+        let MaxS = parseFloat(document.getElementById('maxStep').value);
+        let battenW = parseFloat(document.getElementById('battenWidth').value) || 48;
+        let hook = document.getElementById('roofHook').value;
+        let lang = document.getElementById('lang-select').value;
+
+        if(!X || !LAT || !LAF || !MaxS) return;
+
+        let effLen = X - LAT - LAF;
+        if(effLen <= 0) {
+            alert("Error: LAT + LAF is larger than Total Length!");
+            return;
+        }
+
+        let count = Math.ceil(effLen / MaxS);
+        let realStep = effLen / count;
+        let spacerBlock = realStep - battenW;
+        
+        let html = `<div class="info-box">
+            ${translations[lang].roof_res_count} <b>${count}</b><br>
+            ${translations[lang].roof_res_step} <b class="big-result">${realStep.toFixed(1)} mm</b><br>
+            <span style="color:var(--text-muted); font-size:0.9rem;">${translations[lang].roof_res_spacer} <b>${spacerBlock.toFixed(1)} mm</b></span>
+        </div>`;
+        
+        html += `<strong>${translations[lang].positions_result}</strong>`;
+
+        let positions = [];
+        
+        // Add First (Eaves)
+        positions.push({ m: LAT, label: translations[lang].pos_eaves });
+        
+        // Add Middle
+        for(let i=1; i < count; i++) {
+            positions.push({ m: LAT + (i * realStep), label: `${translations[lang].batten_pos} #${i+1}` });
+        }
+        
+        // Add Last (Ridge) - should match X - LAF
+        let lastPos = X - LAF;
+        positions.push({ m: lastPos, label: translations[lang].pos_ridge });
+
+        // If Hook is Top (Ridge), we need to invert the measurements
+        if(hook === 'top') {
+            positions = positions.map(p => {
+                return { m: X - p.m, label: p.label };
+            });
+            // Sort to show closest to hook first
+            positions.sort((a,b) => a.m - b.m);
+        }
+
+        positions.forEach(p => {
+            html += `<div class="list-item">
+                <span><b>${translations[lang].edge_mark}:</b> <span class="mark-edge">${p.m.toFixed(1)}</span> mm</span>
+                <span class="mark-center">${p.label}</span>
+            </div>`;
+        });
+
+        let rb = document.getElementById('roofResult');
+        rb.innerHTML = html; 
+        rb.style.display = "block";
+    }
+
+</script>
+</body>
+</html>
