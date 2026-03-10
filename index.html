@@ -8,7 +8,7 @@
         :root {
             --bg-color: #f7f9fa; --card-bg: #ffffff; --text-main: #2d3748;
             --text-muted: #718096; --primary: #3182ce; --border: #e2e8f0; --accent: #dd6b20;
-            --success: #38a169;
+            --success: #38a169; --danger: #e53e3e;
         }
         body { font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 0; }
         
@@ -44,8 +44,20 @@
             display: flex;
             align-items: center;
             gap: 6px;
+            border: none;
+            cursor: pointer;
         }
         .nav-btn:hover { background-color: #c05621; }
+        .btn-reset { 
+            background-color: var(--danger); 
+            margin-bottom: 15px;
+            width: auto;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            float: right;
+        }
+        .btn-reset:hover { background-color: #c53030; }
 
         select#lang-select { padding: 8px; border: 1px solid var(--border); border-radius: 5px; background: var(--bg-color); cursor: pointer; }
         
@@ -63,10 +75,52 @@
         .tab-btn { padding: 15px 20px; border: none; background: none; font-size: 0.9rem; color: var(--text-muted); cursor: pointer; white-space: nowrap; border-bottom: 3px solid transparent; transition: 0.3s; }
         .tab-btn.active { color: var(--primary); border-bottom: 3px solid var(--primary); font-weight: bold; }
         
-        .container { padding: 15px; max-width: 600px; margin: 0 auto; }
-        .tab-content { display: none; }
+        .container { padding: 15px; max-width: 600px; margin: 0 auto; overflow: hidden; }
+        .tab-content { display: none; clear: both; }
         .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
         
+        /* PROJECT INFO SECTION */
+        .project-info { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 15px; 
+            margin-bottom: 20px; 
+            padding: 15px; 
+            background: #fff; 
+            border-radius: 8px; 
+            border: 1px dashed var(--border);
+        }
+        .project-info input { padding: 8px; border: 1px solid var(--border); border-radius: 4px; font-size: 0.9rem; }
+        
+        /* PRINT STYLES */
+        @media print {
+            header, .tabs, .nav-btn, .calc-btn, .checkbox-group, .form-group select, .info-box, .tab-btn { display: none !important; }
+            body { background: white; }
+            .container { max-width: 100%; padding: 0; margin: 0; }
+            .card { box-shadow: none; border: 1px solid #eee; margin-bottom: 10px; break-inside: avoid; }
+            .project-info { 
+                grid-template-columns: 1fr; 
+                border: none; 
+                border-bottom: 2px solid #333; 
+                padding: 0 0 10px 0; 
+                margin-bottom: 30px;
+                display: block;
+            }
+            .project-info label { display: inline-block; width: 120px; color: #666; }
+            .project-info input { 
+                border: none !important; 
+                font-weight: bold; 
+                font-size: 1.4rem !important; 
+                width: auto !important;
+                padding: 0;
+            }
+            .project-info .date-input { font-size: 1rem !important; color: #444; margin-top: 5px; }
+            .result-box { border: 1px solid #ddd; background: white !important; }
+            .tab-content { display: block !important; opacity: 1 !important; } /* Show all for print? No, usually just active. */
+            #karkasas, #stogas, #plotai, #laiptai { display: none; }
+            #karkasas.active, #stogas.active, #plotai.active, #laiptai.active { display: block !important; }
+        }
+
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         .card { background: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; border: 1px solid var(--border); }
@@ -114,7 +168,7 @@
     <header>
         <div class="logo-container">
             <img src="BU_Logo.png" alt="Logo" class="logo-img">
-            <h3>ProBuilder Calc by Vytautas Giedraitis</h3>
+            <h3>ProBuilder Calc</h3>
         </div>
         <div class="header-right">
             <a href="normcalc.html" class="nav-btn" title="Go to Norms Calculator">Norms / Priser 💰</a>
@@ -135,6 +189,17 @@
     </div>
 
     <div class="container">
+        <div class="project-info">
+            <div class="form-group">
+                <label data-i18n="project_name">Project Name:</label>
+                <input type="text" id="projectName" placeholder="E.g. Storgata 15">
+            </div>
+            <div class="form-group">
+                <label data-i18n="project_date">Date:</label>
+                <input type="date" id="projectDate" class="date-input">
+            </div>
+        </div>
+        <button onclick="resetAll()" class="nav-btn btn-reset" data-i18n="btn_reset">Reset 🔄</button>
         <!-- FRAME TAB -->
         <div id="karkasas" class="tab-content active">
             <!-- Content kept from previous version -->
@@ -500,6 +565,8 @@
 <script>
     const translations = {
         en: {
+            project_name: "Project Name:", project_date: "Date:",
+            btn_reset: "Reset 🔄",
             menu_framing: "Framing", menu_roof: "Roof", menu_areas: "Areas / Angles", menu_stairs: "Stairs",
             stud_spacing_title: "1. Stud Layout (c/c)", wall_length: "Wall length (mm):", spacing: "Spacing c/c:",
             stud_thick: "Stud thick. (mm):", start_point: "Starting zero:", start_edge: "Outer edge", 
@@ -574,6 +641,8 @@
             mat_waste: "Waste (%):", calc_mat_btn: "Calculate Material", res_total_qty: "Total Quantity:", res_total_lm: "Total Linear Meters:"
         },
         no: {
+            project_name: "Prosjektnavn:", project_date: "Dato:",
+            btn_reset: "Tøm Alt 🔄",
             menu_framing: "Reisverk", menu_roof: "Tak", menu_areas: "Areal", menu_stairs: "Trapper",
             stud_spacing_title: "1. Stenderinndeling (c/c)", wall_length: "Vegglengde (mm):", spacing: "Senteravstand:",
             stud_thick: "Stendertykkelse (mm):", start_point: "Målebånd start:", start_edge: "Ytterkant", 
@@ -648,6 +717,8 @@
             mat_waste: "Kapp (%):", calc_mat_btn: "Beregn Materialer", res_total_qty: "Totalt Antall:", res_total_lm: "Totalt Løpemeter:"
         },
         pl: {
+            project_name: "Nazwa Projektu:", project_date: "Data:",
+            btn_reset: "Wyczyść 🔄",
             menu_framing: "Konstrukcje", menu_roof: "Dach", menu_areas: "Powierzchnie", menu_stairs: "Schody",
             stud_spacing_title: "1. Rozstaw słupków (c/c)", wall_length: "Długość ściany (mm):", spacing: "Rozstaw c/c:",
             stud_thick: "Grubość słupka (mm):", start_point: "Punkt zero:", start_edge: "Krawędź zewn.", 
@@ -722,6 +793,8 @@
             mat_waste: "Odpad (%):", calc_mat_btn: "Oblicz Materiał", res_total_qty: "Całkowita Ilość:", res_total_lm: "Metry Bieżące:"
         },
         lt: {
+            project_name: "Projekto pavadinimas:", project_date: "Data:",
+            btn_reset: "Išvalyti 🔄",
             menu_framing: "Karkasas", menu_roof: "Stogas", menu_areas: "Plotai / Kampai", menu_stairs: "Laiptai",
             stud_spacing_title: "1. Stenderių išdėstymas (c/c)", wall_length: "Sienos ilgis (mm):", spacing: "Žingsnis c/c:",
             stud_thick: "Stenderio storis (mm):", start_point: "Ruletės nulis:", start_edge: "Išorinis kraštas", 
@@ -1270,8 +1343,62 @@
     // Initial call to set defaults
     changeLanguage();
 
+    // --- LOCAL STORAGE LOGIC ---
+    function saveInputs() {
+        const inputs = document.querySelectorAll('input, select');
+        const data = {};
+        inputs.forEach(el => {
+            if (el.id) {
+                data[el.id] = el.type === 'checkbox' ? el.checked : el.value;
+            }
+        });
+        // Also save which tab is active
+        const activeTab = document.querySelector('.tab-btn.active');
+        if (activeTab) {
+            // Get the tabId from the onclick attribute: openTab('tabId')
+            const match = activeTab.getAttribute('onclick').match(/'([^']+)'/);
+            if (match) data['_activeTab'] = match[1];
+        }
+        localStorage.setItem('probuilder_calc_data', JSON.stringify(data));
+    }
+
+    function loadInputs() {
+        const data = JSON.parse(localStorage.getItem('probuilder_calc_data'));
+        if (data) {
+            Object.keys(data).forEach(id => {
+                if (id === '_activeTab') {
+                    // Find the button that opens this tab and click it
+                    const btn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.getAttribute('onclick').includes(`'${data[id]}'`));
+                    if (btn) btn.click();
+                    return;
+                }
+                const el = document.getElementById(id);
+                if (el) {
+                    if (el.type === 'checkbox') el.checked = data[id];
+                    else el.value = data[id];
+                }
+            });
+            // Update UI dependencies
+            toggleInnerWallInput();
+            toggleShapeInputs();
+            updateRoofHints();
+        }
+    }
+
+    function resetAll() {
+        if (confirm("Išvalyti visus suvestus duomenis? / Reset all inputs?")) {
+            localStorage.removeItem('probuilder_calc_data');
+            location.reload();
+        }
+    }
+
+    // Auto-save on any input change
+    document.addEventListener('input', saveInputs);
+    document.addEventListener('change', saveInputs);
+
+    // Load data on startup
+    window.addEventListener('load', loadInputs);
+
 </script>
 </body>
-
 </html>
-
