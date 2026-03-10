@@ -247,6 +247,17 @@
                     </div>
                 </div>
                 
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-top:10px;">
+                    <div class="form-group">
+                        <label data-i18n="team_size">Komandos dydis (žm.):</label>
+                        <input type="number" id="teamSize" value="1" min="1" onchange="renderAll()">
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="vat_rate">PVM / MVA (%):</label>
+                        <input type="number" id="vatRate" value="25" onchange="renderAll()">
+                    </div>
+                </div>
+                
                 <label style="margin-top:15px; display:block;" data-i18n="complexity">Sudėtingumo Koeficientai:</label>
                 <div class="checks">
                     <label class="check-item"><input type="checkbox" id="cRenov" onchange="renderAll()"> <span data-i18n="c_renov">Renovacija (+10%)</span></label>
@@ -254,6 +265,12 @@
                     <label class="check-item"><input type="checkbox" id="cHeight" onchange="renderAll()"> <span data-i18n="c_height">Aukštis >3m (+15%)</span></label>
                     <label class="check-item"><input type="checkbox" id="cDust" onchange="renderAll()"> <span data-i18n="c_dust">Dulkės (+5%)</span></label>
                     <label class="check-item"><input type="checkbox" id="cLogi" onchange="renderAll()"> <span data-i18n="c_logi">Logistika (+10%)</span></label>
+                </div>
+                
+                <div style="margin-top:20px; display:flex; gap:10px;">
+                    <button class="btn" style="background:var(--text-muted); color:white; font-size:0.8rem;" onclick="exportData()" data-i18n="btn_export">💾 Eksportuoti JSON</button>
+                    <button class="btn" style="background:var(--text-muted); color:white; font-size:0.8rem;" onclick="document.getElementById('importFile').click()" data-i18n="btn_import">📂 Importuoti JSON</button>
+                    <input type="file" id="importFile" style="display:none" onchange="importData(this)" accept=".json">
                 </div>
             </div>
 
@@ -308,7 +325,7 @@
                         <div class="val" id="sumPrice" style="color:var(--text-main);">0</div>
                     </div>
                     <div class="sum-box total">
-                        <label data-i18n="sum_total">VISO (Su 25% MVA)</label>
+                        <label id="lblTotal" data-i18n="sum_total">VISO (Su 25% MVA)</label>
                         <div class="val" id="sumTotal">0</div>
                     </div>
                 </div>
@@ -327,9 +344,11 @@
             task: "Pasirinkite darbą:", qty: "Kiekis:", rate: "Norma (h):", btn_add: "+ Įtraukti į sąmatą",
             custom_title: "✨ Nestandartinis Darbas", desc: "Pavadinimas:", total_hours: "Viso Valandų:", btn_custom: "+ Pridėti savo",
             settings: "⚙️ Nustatymai", hourly_rate: "Valandinis įkainis (NOK/h):", hours_per_day: "Darbo dienos trukmė (h):", complexity: "Sudėtingumo Koeficientai:",
+            team_size: "Komandos dydis (žm.):", vat_rate: "PVM / MVA (%):", btn_export: "💾 Eksportuoti", btn_import: "📂 Importuoti",
             c_renov: "Renovacija (+10%)", c_small: "Maža patalpa (+20%)", c_height: "Aukštis >3m (+15%)", c_dust: "Dulkės (+5%)", c_logi: "Logistika (+10%)",
-            estimate_title: "📋 Darbų Sąmata", btn_clear: "Išvalyti", col_task: "Darbas", col_qty: "Kiekis", col_rate: "Norma", col_total_h: "Viso (h)", col_price: "Kaina",
-            sum_hours: "Viso Valandų", sum_days: "Darbo Dienos", sum_price: "Suma (Eksl. MVA)", sum_total: "VISO (Su 25% MVA)", btn_print: "🖨️ Spausdinti / PDF"
+            estimate_title: "📋 Darbų Sąmata", btn_clear: "Išvalyti", confirm_clear: "Ar tikrai norite išvalyti visus duomenis?", 
+            col_task: "Darbas", col_qty: "Kiekis", col_rate: "Norma", col_total_h: "Viso (h)", col_price: "Kaina",
+            sum_hours: "Viso Valandų", sum_days: "Darbo Dienos", sum_price: "Suma (Eksl. MVA)", sum_total: "VISO (Su MVA)", btn_print: "🖨️ Spausdinti / PDF"
         },
         en: {
             project_name: "Project Name:", project_date: "Date:",
@@ -337,8 +356,10 @@
             task: "Select Task:", qty: "Quantity:", rate: "Rate (h):", btn_add: "+ Add to Estimate",
             custom_title: "✨ Custom Task", desc: "Description:", total_hours: "Total Hours:", btn_custom: "+ Add Custom",
             settings: "⚙️ Settings", hourly_rate: "Hourly Rate (NOK/h):", hours_per_day: "Work Day Duration (h):", complexity: "Complexity Factors:",
+            team_size: "Team Size (ppl):", vat_rate: "VAT / MVA (%):", btn_export: "💾 Export JSON", btn_import: "📂 Import JSON",
             c_renov: "Renovation (+10%)", c_small: "Small Room (+20%)", c_height: "Height >3m (+15%)", c_dust: "Dust (+5%)", c_logi: "Logistics (+10%)",
-            estimate_title: "📋 Project Estimate", btn_clear: "Clear All", col_task: "Task", col_qty: "Qty", col_rate: "Rate", col_total_h: "Total (h)", col_price: "Price",
+            estimate_title: "📋 Project Estimate", btn_clear: "Clear All", confirm_clear: "Are you sure you want to clear all data?",
+            col_task: "Task", col_qty: "Qty", col_rate: "Rate", col_total_h: "Total (h)", col_price: "Price",
             sum_hours: "Total Hours", sum_days: "Work Days", sum_price: "Total (Excl. VAT)", sum_total: "GRAND TOTAL (Inc. VAT)", btn_print: "🖨️ Print / Save PDF"
         },
         no: {
@@ -347,8 +368,10 @@
             task: "Velg Oppgave:", qty: "Mengde:", rate: "Norm (t):", btn_add: "+ Legg til",
             custom_title: "✨ Annet Arbeid", desc: "Beskrivelse:", total_hours: "Totalt Timer:", btn_custom: "+ Legg til Egen",
             settings: "⚙️ Innstillinger", hourly_rate: "Timepris (NOK/t):", hours_per_day: "Arbeidsdag Varighet (t):", complexity: "Tillegg:",
+            team_size: "Lagstørrelse (pers):", vat_rate: "MVA Sats (%):", btn_export: "💾 Eksport", btn_import: "📂 Import",
             c_renov: "Rehabilitering (+10%)", c_small: "Lite rom (+20%)", c_height: "Høyde >3m (+15%)", c_dust: "Støv (+5%)", c_logi: "Logistikk (+10%)",
-            estimate_title: "📋 Kalkyle", btn_clear: "Tøm Alt", col_task: "Oppgave", col_qty: "Mengde", col_rate: "Norm", col_total_h: "Totalt (t)", col_price: "Pris",
+            estimate_title: "📋 Kalkyle", btn_clear: "Tøm Alt", confirm_clear: "Er du sikker på at du vil slette alt?",
+            col_task: "Oppgave", col_qty: "Mengde", col_rate: "Norm", col_total_h: "Totalt (t)", col_price: "Pris",
             sum_hours: "Totalt Timer", sum_days: "Arbeidsdager", sum_price: "Sum (Eks. MVA)", sum_total: "TOTALT (Inkl. MVA)", btn_print: "🖨️ Skriv ut / PDF"
         },
         pl: {
@@ -357,9 +380,11 @@
             task: "Wybierz Pracę:", qty: "Ilość:", rate: "Norma (h):", btn_add: "+ Dodaj do Wyceny",
             custom_title: "✨ Praca Niestandardowa", desc: "Opis:", total_hours: "Razem Godzin:", btn_custom: "+ Dodaj Własne",
             settings: "⚙️ Ustawienia", hourly_rate: "Stawka Godz. (NOK/h):", hours_per_day: "Długość Dnia Pracy (h):", complexity: "Współczynniki:",
+            team_size: "Wielkość Ekipy (os):", vat_rate: "VAT / MVA (%):", btn_export: "💾 Eksportuj", btn_import: "📂 Importuj",
             c_renov: "Renowacja (+10%)", c_small: "Małe pom. (+20%)", c_height: "Wysokość >3m (+15%)", c_dust: "Kurz (+5%)", c_logi: "Logistyka (+10%)",
-            estimate_title: "📋 Kosztorys", btn_clear: "Wyczyść", col_task: "Praca", col_qty: "Ilość", col_rate: "Norma", col_total_h: "Razem (h)", col_price: "Cena",
-            sum_hours: "Razem Godzin", sum_days: "Dni Robocze", sum_price: "Suma (Netto)", sum_total: "RAZEM (Brutto 25%)", btn_print: "🖨️ Drukuj / PDF"
+            estimate_title: "📋 Kosztorys", btn_clear: "Wyczyść", confirm_clear: "Czy na pewno chcesz wyczyścić wszystkie dane?",
+            col_task: "Praca", col_qty: "Ilość", col_rate: "Norma", col_total_h: "Razem (h)", col_price: "Cena",
+            sum_hours: "Razem Godzin", sum_days: "Dni Robocze", sum_price: "Suma (Netto)", sum_total: "RAZEM (Brutto)", btn_print: "🖨️ Drukuj / PDF"
         }
     };
 
@@ -489,6 +514,8 @@
             settings: {
                 hourlyRate: document.getElementById('hourlyRate').value,
                 hoursPerDay: document.getElementById('hoursPerDay').value,
+                teamSize: document.getElementById('teamSize').value,
+                vatRate: document.getElementById('vatRate').value,
                 cRenov: document.getElementById('cRenov').checked,
                 cSmall: document.getElementById('cSmall').checked,
                 cHeight: document.getElementById('cHeight').checked,
@@ -509,6 +536,8 @@
             if (data.settings) {
                 document.getElementById('hourlyRate').value = data.settings.hourlyRate || 650;
                 document.getElementById('hoursPerDay').value = data.settings.hoursPerDay || 7.5;
+                document.getElementById('teamSize').value = data.settings.teamSize || 1;
+                document.getElementById('vatRate').value = data.settings.vatRate !== undefined ? data.settings.vatRate : 25;
                 document.getElementById('cRenov').checked = data.settings.cRenov || false;
                 document.getElementById('cSmall').checked = data.settings.cSmall || false;
                 document.getElementById('cHeight').checked = data.settings.cHeight || false;
@@ -571,15 +600,17 @@
         
         if (text.length < 2) return;
 
+        // Loop through all categories to find matches
         for (let catKey in masterData) {
             const tasks = masterData[catKey];
             for (let i = 0; i < tasks.length; i++) {
-                const name = tasks[i].n[lang] || tasks[i].n['lt'];
-                if (name.toLowerCase().includes(text)) {
+                const name = (tasks[i].n[lang] || tasks[i].n['lt']).toLowerCase();
+                if (name.includes(text)) {
                     catS.value = catKey;
                     loadTasks(); // Reloads tasks for this category
                     document.getElementById('taskSelect').value = i;
                     updateUnit();
+                    // Optional: Visual feedback or scroll to item
                     return; 
                 }
             }
@@ -652,11 +683,46 @@
     }
 
     function clearAll() {
-        if(confirm("Išvalyti visą sąmatą ir nustatymus? / Clear all data?")) {
+        const lang = document.getElementById('lang-select').value;
+        if(confirm(uiTrans[lang].confirm_clear)) {
             projectItems = [];
             localStorage.removeItem('pronorm_calc_data');
             location.reload();
         }
+    }
+
+    function exportData() {
+        saveProject(); // Ensure latest data is in localstorage
+        const data = localStorage.getItem('pronorm_calc_data');
+        const blob = new Blob([data], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const name = document.getElementById('projectName').value || "Project";
+        const date = new Date().toISOString().split('T')[0];
+        a.href = url;
+        a.download = `ProNorm_${name}_${date}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
+    function importData(input) {
+        const file = input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                // Just validation
+                const json = JSON.parse(e.target.result);
+                if (!json.projectItems && !json.settings) throw new Error("Invalid format");
+                
+                localStorage.setItem('pronorm_calc_data', e.target.result);
+                location.reload();
+            } catch(err) {
+                alert("Error importing file: " + err.message);
+            }
+        };
+        reader.readAsText(file);
     }
 
     function renderAll() {
@@ -704,13 +770,29 @@
         });
 
         const totalExMva = totalH * hRate;
-        const mva = totalExMva * 0.25;
+        
+        const vatRate = parseFloat(document.getElementById('vatRate').value) || 25;
+        const mva = totalExMva * (vatRate / 100);
         const grandTotal = totalExMva + mva;
+        
+        // Update VAT Label
+        const vatText = uiTrans[lang].sum_total.replace("25%", vatRate + "%").replace("MVA", "MVA");
+        document.getElementById('lblTotal').innerText = vatText;
 
         const hPerDay = parseFloat(document.getElementById('hoursPerDay').value) || 7.5;
+        const teamSize = parseFloat(document.getElementById('teamSize').value) || 1;
+        const totalDays = totalH / hPerDay;
+        const teamDays = totalDays / teamSize;
 
         document.getElementById('sumHours').innerText = totalH.toFixed(2);
-        document.getElementById('sumDays').innerText = (totalH / hPerDay).toFixed(1);
+        
+        // Show Days (Total / Team)
+        if(teamSize > 1) {
+            document.getElementById('sumDays').innerHTML = `${teamDays.toFixed(1)} <small>(${teamSize} ppl)</small>`;
+        } else {
+            document.getElementById('sumDays').innerText = totalDays.toFixed(1);
+        }
+        
         document.getElementById('sumPrice').innerText = totalExMva.toLocaleString('no-NO') + " NOK";
         document.getElementById('sumTotal').innerText = grandTotal.toLocaleString('no-NO') + " NOK";
         
